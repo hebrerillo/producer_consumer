@@ -23,16 +23,12 @@ public:
     Producer(int *buffer)
     {
         buffer_ = buffer;
+        thread_ = std::thread(&Producer::run, this);
     }
 
     ~Producer()
     {
         thread_.join();
-    }
-
-    void start()
-    {
-        thread_ = std::thread(&Producer::run, this);
     }
 
 private:
@@ -74,16 +70,12 @@ public:
     Consumer(int *buffer)
     {
         buffer_ = buffer;
+        thread_ = std::thread(&Consumer::run, this);
     }
 
     ~Consumer()
     {
         thread_.join();
-    }
-
-    void start()
-    {
-        thread_ = std::thread(&Consumer::run, this);
     }
 
 private:
@@ -124,8 +116,6 @@ int main()
     currentIndex = -1;
     Consumer consumer(buffer);
     Producer producer(buffer);
-    producer.start();
-    consumer.start();
 
     int input;
     std::cin >> input;
