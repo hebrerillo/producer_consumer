@@ -4,6 +4,7 @@
 #include <mutex>
 #include <string.h>
 #include <atomic>
+#include <assert.h>
 
 #define BUFFER_SIZE 20
 #define SPEED_CONSUMER 400
@@ -24,7 +25,9 @@ public:
             mutex.lock();
             if ((currentIndex + 1) < BUFFER_SIZE)
             {
-                buffer[++currentIndex] = 1;
+                ++currentIndex;
+                assert(buffer[currentIndex] == 0);
+                buffer[currentIndex] = 1;
                 std::cout << "Producing" << std::endl;
             }
             mutex.unlock();
@@ -43,6 +46,7 @@ public:
             mutex.lock();
             if (currentIndex >= 0)
             {
+                assert(buffer[currentIndex] == 1);
                 buffer[currentIndex--] = 0;
                 std::cout << "Consuming" << std::endl;
             }
