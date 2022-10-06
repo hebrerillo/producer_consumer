@@ -8,10 +8,9 @@
 #include <condition_variable>
 
 #define BUFFER_SIZE 20
-#define SPEED_CONSUMER 1000
-#define SPEED_PRODUCER 1000
+#define SPEED_CONSUMER 200
+#define SPEED_PRODUCER 100
 
-static std::atomic<bool> quitSignal;
 static int currentIndex;
 static std::mutex mutex;
 static std::condition_variable cv;
@@ -20,14 +19,20 @@ class Producer
 {
 public:
 
+    Producer()
+    : quitSignal_(true)
+    {}
+
     void start(int *buffer)
     {
+        quitSignal_ = false;
         thread_ = std::thread(&Producer::run, this, buffer);
     }
 
     void stop()
     {
         std::unique_lock<std::mutex> lock(mutex);
+        quitSignal_.exchange(true);
         cv.notify_all();
         lock.unlock();
         thread_.join();
@@ -37,7 +42,7 @@ private:
 
     void run(int* buffer)
     {
-        while(!quitSignal.load())
+        while(!quitSignal_.load())
         {
             std::unique_lock<std::mutex> lock(mutex);
             if ((currentIndex + 1) < BUFFER_SIZE)
@@ -51,8 +56,8 @@ private:
             else
             {
                 std::cout << "Producer waiting until consumer consumes." << std::endl;
-                cv.wait(lock, [](){
-                    return (currentIndex + 1) < BUFFER_SIZE || quitSignal.load();
+                cv.wait(lock, [this](){
+                    return (currentIndex + 1) < BUFFER_SIZE || quitSignal_.load();
                 });
             }
             lock.unlock();
@@ -61,20 +66,26 @@ private:
     }
 
     std::thread thread_;
+    std::atomic<bool> quitSignal_;
 };
 
 class Consumer 
 {
 public:
+    Consumer()
+    : quitSignal_(true)
+    {}
 
     void start(int* buffer)
     {
+        quitSignal_ = false;
         thread_ = std::thread(&Consumer::run, this, buffer);
     }
 
     void stop()
     {
         std::unique_lock<std::mutex> lock(mutex);
+        quitSignal_.exchange(true);
         cv.notify_all();
         lock.unlock();
         thread_.join();
@@ -83,7 +94,7 @@ public:
 private:
     void run(int* buffer)
     {
-        while(!quitSignal.load())
+        while(!quitSignal_.load())
         {
             std::unique_lock<std::mutex> lock(mutex);
             if (currentIndex >= 0)
@@ -96,8 +107,8 @@ private:
             else
             {
                 std::cout << "Consumer waiting until producer produces." << std::endl;
-                cv.wait(lock, [](){
-                    return (currentIndex >= 0) || quitSignal.load();
+                cv.wait(lock, [this](){
+                    return (currentIndex >= 0) || quitSignal_.load();
                 });
             }
             lock.unlock();
@@ -106,13 +117,13 @@ private:
     }
 
     std::thread thread_;
+    std::atomic<bool> quitSignal_;
 };
 
 
 int main()
 {
     int buffer[BUFFER_SIZE];
-    quitSignal = false;
     memset(buffer, 0, sizeof(buffer));
     currentIndex = -1;
     Consumer consumer;
@@ -122,7 +133,6 @@ int main()
 
     int input;
     std::cin >> input;
-    quitSignal.exchange(true);
 
     consumer.stop();
     producer.stop();
