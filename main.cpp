@@ -8,8 +8,8 @@
 #include <condition_variable>
 
 #define BUFFER_SIZE 20
-#define SPEED_CONSUMER 100
-#define SPEED_PRODUCER 100
+#define SPEED_CONSUMER 1000
+#define SPEED_PRODUCER 1000
 
 static std::atomic<bool> quitSignal;
 static int currentIndex;
@@ -19,21 +19,23 @@ static std::condition_variable cv;
 class Producer
 {
 public:
-    
-    Producer(int *buffer)
+
+    void start(int *buffer)
     {
-        buffer_ = buffer;
-        thread_ = std::thread(&Producer::run, this);
+        thread_ = std::thread(&Producer::run, this, buffer);
     }
 
-    ~Producer()
+    void stop()
     {
+        std::unique_lock<std::mutex> lock(mutex);
+        cv.notify_all();
+        lock.unlock();
         thread_.join();
     }
 
 private:
 
-    void run()
+    void run(int* buffer)
     {
         while(!quitSignal.load())
         {
@@ -41,8 +43,8 @@ private:
             if ((currentIndex + 1) < BUFFER_SIZE)
             {
                 ++currentIndex;
-                assert(buffer_[currentIndex] == 0);
-                buffer_[currentIndex] = 1;
+                assert(buffer[currentIndex] == 0);
+                buffer[currentIndex] = 1;
                 std::cout << "Producing" << std::endl;
                 cv.notify_all();
             }
@@ -50,7 +52,7 @@ private:
             {
                 std::cout << "Producer waiting until consumer consumes." << std::endl;
                 cv.wait(lock, [](){
-                    return (currentIndex + 1) < BUFFER_SIZE;
+                    return (currentIndex + 1) < BUFFER_SIZE || quitSignal.load();
                 });
             }
             lock.unlock();
@@ -59,35 +61,35 @@ private:
     }
 
     std::thread thread_;
-    int *buffer_;
-
 };
 
 class Consumer 
 {
 public:
 
-    Consumer(int *buffer)
+    void start(int* buffer)
     {
-        buffer_ = buffer;
-        thread_ = std::thread(&Consumer::run, this);
+        thread_ = std::thread(&Consumer::run, this, buffer);
     }
 
-    ~Consumer()
+    void stop()
     {
+        std::unique_lock<std::mutex> lock(mutex);
+        cv.notify_all();
+        lock.unlock();
         thread_.join();
     }
 
 private:
-    void run()
+    void run(int* buffer)
     {
         while(!quitSignal.load())
         {
             std::unique_lock<std::mutex> lock(mutex);
             if (currentIndex >= 0)
             {
-                assert(buffer_[currentIndex] == 1);
-                buffer_[currentIndex--] = 0;
+                assert(buffer[currentIndex] == 1);
+                buffer[currentIndex--] = 0;
                 std::cout << "Consuming" << std::endl;
                 cv.notify_all();
             }
@@ -95,7 +97,7 @@ private:
             {
                 std::cout << "Consumer waiting until producer produces." << std::endl;
                 cv.wait(lock, [](){
-                    return (currentIndex >= 0);
+                    return (currentIndex >= 0) || quitSignal.load();
                 });
             }
             lock.unlock();
@@ -104,7 +106,6 @@ private:
     }
 
     std::thread thread_;
-    int *buffer_;
 };
 
 
@@ -114,12 +115,17 @@ int main()
     quitSignal = false;
     memset(buffer, 0, sizeof(buffer));
     currentIndex = -1;
-    Consumer consumer(buffer);
-    Producer producer(buffer);
+    Consumer consumer;
+    Producer producer;
+    consumer.start(buffer);
+    producer.start(buffer);
 
     int input;
     std::cin >> input;
     quitSignal.exchange(true);
+
+    consumer.stop();
+    producer.stop();
 
     return 0;
 }
