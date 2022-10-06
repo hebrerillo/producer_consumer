@@ -7,20 +7,13 @@
 #include <assert.h>
 #include <condition_variable>
 
-#define SPEED_CONSUMER 200
-#define SPEED_PRODUCER 100
-
-static int currentIndex;
-static std::mutex mutex;
-static std::condition_variable cv;
-
 /**
  * Class that represents the shared buffer between producer and consumer.
  */
 class SharedBuffer
 {
 public:
-    static const int BUFFER_SIZE = 20;
+    static const int BUFFER_SIZE = 10;
 
     SharedBuffer()
     : currentIndex_(-1)
@@ -30,7 +23,7 @@ public:
     }
 
     /**
-     * Adds an element to the buffer in the 'currentIndex_' position and increases 'currentIndex_' . This is the producer role.
+     * Adds an element to the buffer in the 'currentIndex_' position and increases 'currentIndex_'. This is the producer role.
      *
      * @param value The value to be added.
      */
@@ -113,11 +106,14 @@ class Producer
 public:
 
     /**
-     * @param The buffer where the producer will insert values.
+     * Constructor
+     *
+     * @param[in/out] buffer The buffer where the producer will insert values.
+     * @param[in] delay The delay that the producer will take after producing one item.
      */
-    Producer(SharedBuffer& buffer)
+    Producer(SharedBuffer& buffer, const std::chrono::milliseconds& delay)
     {
-        thread_ = std::thread(&Producer::run, this, std::ref(buffer));
+        thread_ = std::thread(&Producer::run, this, std::ref(buffer), delay);
     }
 
     ~Producer()
@@ -129,14 +125,15 @@ private:
     /**
      * Starts adding elements to the buffer 'buffer'.
      *
-     * @param[in] buffer The buffer to insert elements to.
+     * @param[in/out] buffer The buffer to insert elements to.
+     * @param[in] delay The delay that the producer will take after producing one item.
      */
-    void run(SharedBuffer& buffer)
+    void run(SharedBuffer& buffer, const std::chrono::milliseconds& delay)
     {
         while(buffer.isRunning())
         {
             buffer.push(1);
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(delay);
         }
     }
 
@@ -148,11 +145,12 @@ class Consumer
 public:
 
     /**
-     * @param The buffer where the consumer will extract values from.
+     * @param[in/out] buffer The buffer where the consumer will extract values from.
+     * @param[in] delay The delay that the consumer will take after consuming one item.
      */
-    Consumer(SharedBuffer& buffer)
+    Consumer(SharedBuffer& buffer, const std::chrono::milliseconds& delay)
     {
-        thread_ = std::thread(&Consumer::run, this, std::ref(buffer));
+        thread_ = std::thread(&Consumer::run, this, std::ref(buffer), delay);
     }
 
     ~Consumer()
@@ -165,14 +163,15 @@ private:
     /**
      * Starts extracting elements from the buffer 'buffer'.
      *
-     * @param[in] buffer The buffer to extract elements from.
+     * @param[in/out] buffer The buffer to extract elements from.
+     * @param[in] delay The delay that the consumer will take after consuming one item.
      */
-    void run(SharedBuffer& buffer)
+    void run(SharedBuffer& buffer, const std::chrono::milliseconds& delay)
     {
         while(buffer.isRunning())
         {
             buffer.pop();
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            std::this_thread::sleep_for(delay);
         }
     }
 
@@ -183,8 +182,9 @@ private:
 int main()
 {
     SharedBuffer buffer;
-    Consumer consumer(buffer);
-    Producer producer(buffer);
+    Consumer consumer(buffer, std::chrono::milliseconds(250));
+    Producer producer(buffer, std::chrono::milliseconds(500));
+    Producer producer2(buffer, std::chrono::milliseconds(500));
 
     int input;
     std::cin >> input;
