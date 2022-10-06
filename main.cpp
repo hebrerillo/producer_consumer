@@ -7,7 +7,6 @@
 #include <assert.h>
 #include <condition_variable>
 
-#define BUFFER_SIZE 20
 #define SPEED_CONSUMER 200
 #define SPEED_PRODUCER 100
 
@@ -15,127 +14,181 @@ static int currentIndex;
 static std::mutex mutex;
 static std::condition_variable cv;
 
+/**
+ * Class that represents the shared buffer between producer and consumer.
+ */
+class SharedBuffer
+{
+public:
+    static const int BUFFER_SIZE = 20;
+
+    SharedBuffer()
+    : currentIndex_(-1)
+    , quitSignal_(false)
+    {
+        memset(buffer_, 0, sizeof(buffer_));
+    }
+
+    /**
+     * Adds an element to the buffer in the 'currentIndex_' position and increases 'currentIndex_' . This is the producer role.
+     *
+     * @param value The value to be added.
+     */
+    void push(int value)
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if ((currentIndex_ + 1) < BUFFER_SIZE)
+        {
+            ++currentIndex_;
+            assert(buffer_[currentIndex_] == 0);
+            buffer_[currentIndex_] = 1;
+            std::cout << "Pushing value" << std::endl;
+            quitCV_.notify_all();
+        }
+        else
+        {
+            std::cout << "Buffer full. Waiting for someone to consume." << std::endl;
+            quitCV_.wait(lock, [this](){
+                return (currentIndex_ + 1) < BUFFER_SIZE || quitSignal_.load();
+            });
+        }
+        lock.unlock();
+    }
+
+    /**
+     * Extracts the element 'currentIndex_' from the buffer and decreases 'currentIndex_'. This is the consumer role.
+     *
+     * @return The element in the position 'currentIndex_'.
+     */
+    int pop()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        if (currentIndex_ >= 0)
+        {
+            assert(buffer_[currentIndex_] == 1);
+            buffer_[currentIndex_--] = 0;
+            std::cout << "Poping value" << std::endl;
+            quitCV_.notify_all();
+        }
+        else
+        {
+            std::cout << "Buffer empty. Waiting for someone to push." << std::endl;
+            quitCV_.wait(lock, [this](){
+                return (currentIndex_ >= 0) || quitSignal_.load();
+            });
+        }
+        lock.unlock();
+        return 1;
+    }
+
+    /**
+     * Stops the buffer from accepting and/or returning elements.
+     */
+    void stop()
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        quitSignal_.exchange(true); //If the signaling is performed without locking, Helgrind complains that the lock associated with 'quitSignal' is not held by any thread.
+        quitCV_.notify_all();
+        lock.unlock();
+    }
+
+    /**
+     * Whether the buffer is accepting and returning elements.
+     */
+    bool isRunning() const
+    {
+        return !quitSignal_.load();
+    }
+
+private:
+    int currentIndex_; //The index to push/pop elements to/from 'buffer_'.
+    int buffer_[BUFFER_SIZE];
+    std::mutex mutex_; //To syncrhonize accesses to 'buffer_' and 'currentIndex_'.
+    std::condition_variable quitCV_;
+    std::atomic<bool> quitSignal_;
+};
+
 class Producer
 {
 public:
 
-    Producer()
-    : quitSignal_(true)
-    {}
-
-    void start(int *buffer)
+    /**
+     * @param The buffer where the producer will insert values.
+     */
+    Producer(SharedBuffer& buffer)
     {
-        quitSignal_ = false;
-        thread_ = std::thread(&Producer::run, this, buffer);
+        thread_ = std::thread(&Producer::run, this, std::ref(buffer));
     }
 
-    void stop()
+    ~Producer()
     {
-        std::unique_lock<std::mutex> lock(mutex);
-        quitSignal_.exchange(true);
-        cv.notify_all();
-        lock.unlock();
         thread_.join();
     }
-
 private:
 
-    void run(int* buffer)
+    /**
+     * Starts adding elements to the buffer 'buffer'.
+     *
+     * @param[in] buffer The buffer to insert elements to.
+     */
+    void run(SharedBuffer& buffer)
     {
-        while(!quitSignal_.load())
+        while(buffer.isRunning())
         {
-            std::unique_lock<std::mutex> lock(mutex);
-            if ((currentIndex + 1) < BUFFER_SIZE)
-            {
-                ++currentIndex;
-                assert(buffer[currentIndex] == 0);
-                buffer[currentIndex] = 1;
-                std::cout << "Producing" << std::endl;
-                cv.notify_all();
-            }
-            else
-            {
-                std::cout << "Producer waiting until consumer consumes." << std::endl;
-                cv.wait(lock, [this](){
-                    return (currentIndex + 1) < BUFFER_SIZE || quitSignal_.load();
-                });
-            }
-            lock.unlock();
-            std::this_thread::sleep_for(std::chrono::milliseconds(SPEED_PRODUCER));
+            buffer.push(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 
     std::thread thread_;
-    std::atomic<bool> quitSignal_;
 };
 
 class Consumer 
 {
 public:
-    Consumer()
-    : quitSignal_(true)
-    {}
 
-    void start(int* buffer)
+    /**
+     * @param The buffer where the consumer will extract values from.
+     */
+    Consumer(SharedBuffer& buffer)
     {
-        quitSignal_ = false;
-        thread_ = std::thread(&Consumer::run, this, buffer);
+        thread_ = std::thread(&Consumer::run, this, std::ref(buffer));
     }
 
-    void stop()
+    ~Consumer()
     {
-        std::unique_lock<std::mutex> lock(mutex);
-        quitSignal_.exchange(true);
-        cv.notify_all();
-        lock.unlock();
         thread_.join();
     }
 
 private:
-    void run(int* buffer)
+
+    /**
+     * Starts extracting elements from the buffer 'buffer'.
+     *
+     * @param[in] buffer The buffer to extract elements from.
+     */
+    void run(SharedBuffer& buffer)
     {
-        while(!quitSignal_.load())
+        while(buffer.isRunning())
         {
-            std::unique_lock<std::mutex> lock(mutex);
-            if (currentIndex >= 0)
-            {
-                assert(buffer[currentIndex] == 1);
-                buffer[currentIndex--] = 0;
-                std::cout << "Consuming" << std::endl;
-                cv.notify_all();
-            }
-            else
-            {
-                std::cout << "Consumer waiting until producer produces." << std::endl;
-                cv.wait(lock, [this](){
-                    return (currentIndex >= 0) || quitSignal_.load();
-                });
-            }
-            lock.unlock();
-            std::this_thread::sleep_for(std::chrono::milliseconds(SPEED_CONSUMER));
+            buffer.pop();
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
     }
 
     std::thread thread_;
-    std::atomic<bool> quitSignal_;
 };
 
 
 int main()
 {
-    int buffer[BUFFER_SIZE];
-    memset(buffer, 0, sizeof(buffer));
-    currentIndex = -1;
-    Consumer consumer;
-    Producer producer;
-    consumer.start(buffer);
-    producer.start(buffer);
+    SharedBuffer buffer;
+    Consumer consumer(buffer);
+    Producer producer(buffer);
 
     int input;
     std::cin >> input;
-
-    consumer.stop();
-    producer.stop();
+    buffer.stop();
 
     return 0;
 }
