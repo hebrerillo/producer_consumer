@@ -63,6 +63,26 @@ private:
 };
 
 /**
+ * Class that represents an entity that interacts with the buffer.
+ */
+class IBufferPlayer
+{
+public:
+
+    /**
+     * @return Whether this player is running.
+     */
+    virtual bool isRunning() const = 0;
+
+    /**
+     * Stops this player from interacting with the buffer.
+     */
+    virtual void stop() = 0;
+
+    virtual ~IBufferPlayer(){}
+};
+
+/**
  * Class that represents the shared buffer between producers and consumers.
  * 
  */
@@ -84,8 +104,10 @@ public:
 
     /**
      * Adds an element to the buffer in the 'currentIndex_' position and increases 'currentIndex_'. This is the producer role.
+     *
+     * @param[in] producer The producer.
      */
-    void push()
+    void push(const IBufferPlayer* producer)
     {
         std::unique_lock<std::mutex> lock(mutex_);
         if (currentIndex_ < buffer_.size())
@@ -97,8 +119,8 @@ public:
         else
         {
             std::cout << "Buffer full. Waiting for someone to consume." << std::endl;
-            quitCV_.wait(lock, [this](){
-                return currentIndex_ < buffer_.size() || quitSignal_.load();
+            quitCV_.wait(lock, [this, producer](){
+                return currentIndex_ < buffer_.size() || quitSignal_.load() || !producer->isRunning();
             });
         }
         lock.unlock();
@@ -107,9 +129,9 @@ public:
     /**
      * Extracts the element 'currentIndex_' from the buffer and decreases 'currentIndex_'. This is the consumer role.
      *
-     * @return The element in the position 'currentIndex_'.
+     * @param[in] consumer The consumer
      */
-    int pop()
+    void pop(const IBufferPlayer* consumer)
     {
         std::unique_lock<std::mutex> lock(mutex_);
         if (currentIndex_ > 0)
@@ -121,12 +143,11 @@ public:
         else
         {
             std::cout << "Buffer empty. Waiting for someone to push." << std::endl;
-            quitCV_.wait(lock, [this](){
-                return (currentIndex_ > 0) || quitSignal_.load();
+            quitCV_.wait(lock, [this, consumer](){
+                return (currentIndex_ > 0) || quitSignal_.load() || !consumer->isRunning();
             });
         }
         lock.unlock();
-        return 1;
     }
 
     /**
@@ -156,7 +177,7 @@ private:
     std::atomic<bool> quitSignal_;
 };
 
-class Producer
+class Producer : public IBufferPlayer
 {
 public:
 
@@ -173,9 +194,17 @@ public:
     }
 
     /**
+     * @return Whether this producer is running.
+     */
+    bool isRunning() const override
+    {
+        return !quitSignal_.load();
+    }
+
+    /**
      * Stops this producer from producing elements to the buffer.
      */
-    void stop()
+    void stop() override
     {
         quitSignal_.exchange(true);
         thread_.join();
@@ -193,7 +222,7 @@ private:
     {
         while(buffer->isRunning() && !quitSignal_.load())
         {
-            buffer->push();
+            buffer->push(this);
             std::this_thread::sleep_for(delay);
         }
     }
@@ -202,7 +231,7 @@ private:
     std::atomic<bool> quitSignal_;
 };
 
-class Consumer 
+class Consumer : public IBufferPlayer
 {
 public:
 
@@ -217,9 +246,17 @@ public:
     }
 
     /**
+     * @return Whether this consumer is running.
+     */
+    bool isRunning() const override
+    {
+        return !quitSignal_.load();
+    }
+
+    /**
      * Stops this consumer from consuming elements from the buffer.
      */
-    void stop()
+    void stop() override
     {
         quitSignal_.exchange(true);
         thread_.join();
@@ -237,7 +274,7 @@ private:
     {
         while(buffer->isRunning() && !quitSignal_.load())
         {
-            buffer->pop();
+            buffer->pop(this);
             std::this_thread::sleep_for(delay);
         }
     }
