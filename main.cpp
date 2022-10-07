@@ -10,7 +10,11 @@
 
 /**
  * Class that represents the shared buffer between producers and consumers.
+ * 
+ * @param Value A type that supports the boolean operator. A 'true' value means the object is filled, that is, the producer produced its value. A 'false' value
+ * means the object is empty, that is, the consumer consumed the value or the producer has not produced its value yet.
  */
+template <typename Value>
 class SharedBuffer
 {
 public:
@@ -34,7 +38,7 @@ public:
         if ((currentIndex_ + 1) < BUFFER_SIZE)
         {
             ++currentIndex_;
-            assert(buffer_[currentIndex_] == 0);
+            assert(!buffer_[currentIndex_]);
             buffer_[currentIndex_] = 1;
             std::cout << "Pushing value" << std::endl;
             quitCV_.notify_all();
@@ -59,7 +63,7 @@ public:
         std::unique_lock<std::mutex> lock(mutex_);
         if (currentIndex_ >= 0)
         {
-            assert(buffer_[currentIndex_] == 1);
+            assert(buffer_[currentIndex_]);
             buffer_[currentIndex_--] = 0;
             std::cout << "Poping value" << std::endl;
             quitCV_.notify_all();
@@ -96,12 +100,13 @@ public:
 
 private:
     int currentIndex_; //The index to push/pop elements to/from 'buffer_'.
-    std::vector<int> buffer_;
+    std::vector<Value> buffer_;
     std::mutex mutex_; //To syncrhonize accesses to 'buffer_' and 'currentIndex_'.
     std::condition_variable quitCV_;
     std::atomic<bool> quitSignal_;
 };
 
+template <typename Value>
 class Producer
 {
 public:
@@ -112,7 +117,7 @@ public:
      * @param[in/out] buffer The buffer where the producer will insert values.
      * @param[in] delay The delay that the producer will take after producing one item.
      */
-    Producer(SharedBuffer& buffer, const std::chrono::milliseconds& delay)
+    Producer(SharedBuffer<Value>& buffer, const std::chrono::milliseconds& delay)
     {
         thread_ = std::thread(&Producer::run, this, std::ref(buffer), delay);
     }
@@ -129,7 +134,7 @@ private:
      * @param[in/out] buffer The buffer to insert elements to.
      * @param[in] delay The delay that the producer will take after producing one item.
      */
-    void run(SharedBuffer& buffer, const std::chrono::milliseconds& delay)
+    void run(SharedBuffer<Value>& buffer, const std::chrono::milliseconds& delay)
     {
         while(buffer.isRunning())
         {
@@ -141,6 +146,7 @@ private:
     std::thread thread_;
 };
 
+template <typename Value>
 class Consumer 
 {
 public:
@@ -149,7 +155,7 @@ public:
      * @param[in/out] buffer The buffer where the consumer will extract values from.
      * @param[in] delay The delay that the consumer will take after consuming one item.
      */
-    Consumer(SharedBuffer& buffer, const std::chrono::milliseconds& delay)
+    Consumer(SharedBuffer<Value>& buffer, const std::chrono::milliseconds& delay)
     {
         thread_ = std::thread(&Consumer::run, this, std::ref(buffer), delay);
     }
@@ -167,7 +173,7 @@ private:
      * @param[in/out] buffer The buffer to extract elements from.
      * @param[in] delay The delay that the consumer will take after consuming one item.
      */
-    void run(SharedBuffer& buffer, const std::chrono::milliseconds& delay)
+    void run(SharedBuffer<Value>& buffer, const std::chrono::milliseconds& delay)
     {
         while(buffer.isRunning())
         {
@@ -182,10 +188,10 @@ private:
 
 int main()
 {
-    SharedBuffer buffer;
-    Consumer consumer(buffer, std::chrono::milliseconds(250));
-    Producer producer(buffer, std::chrono::milliseconds(500));
-    Producer producer2(buffer, std::chrono::milliseconds(500));
+    SharedBuffer<int> buffer;
+    Consumer<int> consumer(buffer, std::chrono::milliseconds(250));
+    Producer<int> producer(buffer, std::chrono::milliseconds(500));
+    Producer<int> producer2(buffer, std::chrono::milliseconds(500));
 
     int input;
     std::cin >> input;
