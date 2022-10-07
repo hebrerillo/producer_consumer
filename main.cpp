@@ -165,9 +165,9 @@ public:
      * @param[in/out] buffer The buffer where the producer will insert values.
      * @param[in] delay The delay that the producer will take after producing one item.
      */
-    Producer(SharedBuffer& buffer, const std::chrono::milliseconds& delay)
+    Producer(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
     {
-        thread_ = std::thread(&Producer::run, this, std::ref(buffer), delay);
+        thread_ = std::thread(&Producer::run, this, buffer, delay);
     }
 
     ~Producer()
@@ -182,11 +182,11 @@ private:
      * @param[in/out] buffer The buffer to insert elements to.
      * @param[in] delay The delay that the producer will take after producing one item.
      */
-    void run(SharedBuffer& buffer, const std::chrono::milliseconds& delay)
+    void run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
     {
-        while(buffer.isRunning())
+        while(buffer->isRunning())
         {
-            buffer.push();
+            buffer->push();
             std::this_thread::sleep_for(delay);
         }
     }
@@ -202,9 +202,9 @@ public:
      * @param[in/out] buffer The buffer where the consumer will extract values from.
      * @param[in] delay The delay that the consumer will take after consuming one item.
      */
-    Consumer(SharedBuffer& buffer, const std::chrono::milliseconds& delay)
+    Consumer(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
     {
-        thread_ = std::thread(&Consumer::run, this, std::ref(buffer), delay);
+        thread_ = std::thread(&Consumer::run, this, buffer, delay);
     }
 
     ~Consumer()
@@ -220,11 +220,11 @@ private:
      * @param[in/out] buffer The buffer to extract elements from.
      * @param[in] delay The delay that the consumer will take after consuming one item.
      */
-    void run(SharedBuffer& buffer, const std::chrono::milliseconds& delay)
+    void run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
     {
-        while(buffer.isRunning())
+        while(buffer->isRunning())
         {
-            buffer.pop();
+            buffer->pop();
             std::this_thread::sleep_for(delay);
         }
     }
@@ -232,6 +232,41 @@ private:
     std::thread thread_;
 };
 
+/**
+ * Class to manage all the producers and consumers.
+ */
+class ProducersConsumersManager
+{
+public:
+
+    /**
+     * Constructor
+     * @param[in/out] sharedBuffer The buffer shared among producers and consumers.
+     */
+    ProducersConsumersManager(SharedBuffer* sharedBuffer)
+    : sharedBuffer_(sharedBuffer)
+    {
+        consumers_.push_back(new Consumer(sharedBuffer, std::chrono::milliseconds(500))); //TODO Magic Number
+        producers_.push_back(new Producer(sharedBuffer, std::chrono::milliseconds(500)));
+    }
+
+    ~ProducersConsumersManager()
+    {
+        for(auto consumer: consumers_)
+        {
+            delete consumer;
+        }
+
+        for(auto producer: producers_)
+        {
+            delete producer;
+        }
+    }
+private:
+    SharedBuffer* sharedBuffer_;
+    std::vector<Consumer* > consumers_;
+    std::vector<Producer* > producers_;
+};
 
 int main()
 {
@@ -242,9 +277,7 @@ int main()
     }
 
     SharedBuffer sharedBuffer(buffer);
-    Consumer consumer(sharedBuffer, std::chrono::milliseconds(250));
-    Producer producer(sharedBuffer, std::chrono::milliseconds(500));
-    Producer producer2(sharedBuffer, std::chrono::milliseconds(500));
+    ProducersConsumersManager manager(&sharedBuffer);
 
     int input;
     std::cin >> input;
