@@ -29,6 +29,8 @@ public:
      * @return true if the item is filled, false if the item is empty.
      */
     virtual operator bool () const = 0;
+
+    virtual ~IBufferItem(){}
 };
 
 class BufferItem: public IBufferItem
@@ -66,14 +68,18 @@ private:
 class SharedBuffer
 {
 public:
-    static const int BUFFER_SIZE = 10;
 
-    SharedBuffer()
-    : currentIndex_(-1)
+    /**
+     * Constructor
+     *
+     * @param[int/out] buffer The buffer to produce and consume items. 
+     * @note Important!! All the items in the buffer should be empty.
+     */
+    SharedBuffer(const std::vector<IBufferItem* >& buffer)
+    : currentIndex_(0)
+    , buffer_(buffer)
     , quitSignal_(false)
-    {
-        buffer_.assign(BUFFER_SIZE, BufferItem());
-    }
+    {}
 
     /**
      * Adds an element to the buffer in the 'currentIndex_' position and increases 'currentIndex_'. This is the producer role.
@@ -81,9 +87,9 @@ public:
     void push()
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        if ((currentIndex_ + 1) < BUFFER_SIZE)
+        if (currentIndex_ < buffer_.size())
         {
-            buffer_[++currentIndex_].fill();
+            buffer_[currentIndex_++]->fill();
             std::cout << "Pushing value" << std::endl;
             quitCV_.notify_all();
         }
@@ -91,7 +97,7 @@ public:
         {
             std::cout << "Buffer full. Waiting for someone to consume." << std::endl;
             quitCV_.wait(lock, [this](){
-                return (currentIndex_ + 1) < BUFFER_SIZE || quitSignal_.load();
+                return currentIndex_ < buffer_.size() || quitSignal_.load();
             });
         }
         lock.unlock();
@@ -105,9 +111,9 @@ public:
     int pop()
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        if (currentIndex_ >= 0)
+        if (currentIndex_ > 0)
         {
-            buffer_[currentIndex_--].empty();
+            buffer_[--currentIndex_]->empty();
             std::cout << "Poping value" << std::endl;
             quitCV_.notify_all();
         }
@@ -115,7 +121,7 @@ public:
         {
             std::cout << "Buffer empty. Waiting for someone to push." << std::endl;
             quitCV_.wait(lock, [this](){
-                return (currentIndex_ >= 0) || quitSignal_.load();
+                return (currentIndex_ > 0) || quitSignal_.load();
             });
         }
         lock.unlock();
@@ -142,8 +148,8 @@ public:
     }
 
 private:
-    int currentIndex_; //The index to push/pop elements to/from 'buffer_'.
-    std::vector<BufferItem> buffer_;
+    size_t currentIndex_; //The index of the last produced item.
+    std::vector<IBufferItem* > buffer_;
     std::mutex mutex_; //To syncrhonize accesses to 'buffer_' and 'currentIndex_'.
     std::condition_variable quitCV_;
     std::atomic<bool> quitSignal_;
@@ -229,14 +235,24 @@ private:
 
 int main()
 {
-    SharedBuffer buffer;
-    Consumer consumer(buffer, std::chrono::milliseconds(250));
-    Producer producer(buffer, std::chrono::milliseconds(500));
-    Producer producer2(buffer, std::chrono::milliseconds(500));
+    std::vector<IBufferItem* > buffer;
+    for(size_t i = 0; i < 25; i++)
+    {
+        buffer.push_back(new BufferItem);
+    }
+
+    SharedBuffer sharedBuffer(buffer);
+    Consumer consumer(sharedBuffer, std::chrono::milliseconds(250));
+    Producer producer(sharedBuffer, std::chrono::milliseconds(500));
+    Producer producer2(sharedBuffer, std::chrono::milliseconds(500));
 
     int input;
     std::cin >> input;
-    buffer.stop();
+    sharedBuffer.stop();
 
+    for(auto itemBuffer: buffer)
+    {
+        delete itemBuffer;
+    }
     return 0;
 }
