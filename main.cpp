@@ -166,14 +166,20 @@ public:
      * @param[in] delay The delay that the producer will take after producing one item.
      */
     Producer(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
+    : quitSignal_(false)
     {
         thread_ = std::thread(&Producer::run, this, buffer, delay);
     }
 
-    ~Producer()
+    /**
+     * Stops this producer from producing elements to the buffer.
+     */
+    void stop()
     {
+        quitSignal_.exchange(true);
         thread_.join();
     }
+
 private:
 
     /**
@@ -184,7 +190,7 @@ private:
      */
     void run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
     {
-        while(buffer->isRunning())
+        while(buffer->isRunning() && !quitSignal_.load())
         {
             buffer->push();
             std::this_thread::sleep_for(delay);
@@ -192,6 +198,7 @@ private:
     }
 
     std::thread thread_;
+    std::atomic<bool> quitSignal_;
 };
 
 class Consumer 
@@ -203,12 +210,17 @@ public:
      * @param[in] delay The delay that the consumer will take after consuming one item.
      */
     Consumer(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
+    : quitSignal_(false)
     {
         thread_ = std::thread(&Consumer::run, this, buffer, delay);
     }
 
-    ~Consumer()
+    /**
+     * Stops this consumer from consuming elements from the buffer.
+     */
+    void stop()
     {
+        quitSignal_.exchange(true);
         thread_.join();
     }
 
@@ -222,7 +234,7 @@ private:
      */
     void run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
     {
-        while(buffer->isRunning())
+        while(buffer->isRunning() && !quitSignal_.load())
         {
             buffer->pop();
             std::this_thread::sleep_for(delay);
@@ -230,6 +242,7 @@ private:
     }
 
     std::thread thread_;
+    std::atomic<bool> quitSignal_;
 };
 
 /**
@@ -246,19 +259,31 @@ public:
     ProducersConsumersManager(SharedBuffer* sharedBuffer)
     : sharedBuffer_(sharedBuffer)
     {
-        consumers_.push_back(new Consumer(sharedBuffer, std::chrono::milliseconds(500))); //TODO Magic Number
-        producers_.push_back(new Producer(sharedBuffer, std::chrono::milliseconds(500)));
+        addProducer();
+        addConsumer();
+    }
+
+    void addProducer()
+    {
+        producers_.push_back(new Producer(sharedBuffer_, std::chrono::milliseconds(500)));
+    }
+
+    void addConsumer()
+    {
+        consumers_.push_back(new Consumer(sharedBuffer_, std::chrono::milliseconds(500)));
     }
 
     ~ProducersConsumersManager()
     {
         for(auto consumer: consumers_)
         {
+            consumer->stop();
             delete consumer;
         }
 
         for(auto producer: producers_)
         {
+            producer->stop();
             delete producer;
         }
     }
