@@ -6,9 +6,10 @@
 #include <atomic>
 #include <assert.h>
 #include <condition_variable>
+#include <vector>
 
 /**
- * Class that represents the shared buffer between producer and consumer.
+ * Class that represents the shared buffer between producers and consumers.
  */
 class SharedBuffer
 {
@@ -19,7 +20,7 @@ public:
     : currentIndex_(-1)
     , quitSignal_(false)
     {
-        memset(buffer_, 0, sizeof(buffer_));
+        buffer_.assign(BUFFER_SIZE, 0);
     }
 
     /**
@@ -95,7 +96,7 @@ public:
 
 private:
     int currentIndex_; //The index to push/pop elements to/from 'buffer_'.
-    int buffer_[BUFFER_SIZE];
+    std::vector<int> buffer_;
     std::mutex mutex_; //To syncrhonize accesses to 'buffer_' and 'currentIndex_'.
     std::condition_variable quitCV_;
     std::atomic<bool> quitSignal_;
