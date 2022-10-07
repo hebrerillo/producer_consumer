@@ -38,19 +38,19 @@ public:
     : value_(false)
     {}
 
-    void fill()
+    void fill() override
     {
         assert(!value_);
         value_ = true;
     }
 
-    void empty()
+    void empty() override
     {
         assert(value_);
         value_ = false;
     }
 
-    operator bool() const
+    operator bool() const override
     {
         return value_;
     }
