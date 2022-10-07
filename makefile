@@ -14,12 +14,12 @@ TARGETS = main
 
 all:  $(TARGETS)
 
-main: main.o
+main: main.o producer.o consumer.o sharedBuffer.o
 	$(CC) -o main $^ $(LFLAGS)	
 
 main.o: main.cpp
 	$(CC) $(CFLAGS) -c $^
-	
+
 clean:
 	-rm *.o core* $(TARGETS)
 	
