@@ -9,7 +9,7 @@ SharedBuffer::SharedBuffer(const ItemsBuffer& buffer)
 , quitSignal_(false)
 {}
 
-void SharedBuffer::push(const Producer* producer)
+void SharedBuffer::produce(const Producer* producer)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     if (currentIndex_ < buffer_.size())
@@ -27,7 +27,7 @@ void SharedBuffer::push(const Producer* producer)
     }
 }
 
-void SharedBuffer::pop(const Consumer* consumer)
+void SharedBuffer::consume(const Consumer* consumer)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     if (currentIndex_ > 0)

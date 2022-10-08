@@ -85,14 +85,14 @@ public:
      *
      * @param[in] producer The producer.
      */
-    void push(const Producer* producer);
+    void produce(const Producer* producer);
 
     /**
      * Extracts the element 'currentIndex_' from the buffer and decreases 'currentIndex_'. This is the consumer role.
      *
      * @param[in] consumer The consumer.
      */
-    void pop(const Consumer* consumer);
+    void consume(const Consumer* consumer);
 
     /**
      * Stops the buffer from accepting and/or returning elements.

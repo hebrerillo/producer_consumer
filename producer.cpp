@@ -21,7 +21,7 @@ void Producer::run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
 {
     while(buffer->isRunning() && !quitSignal_.load())
     {
-        buffer->push(this);
+        buffer->produce(this);
         std::this_thread::sleep_for(delay);
     }
 }
