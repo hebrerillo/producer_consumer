@@ -64,12 +64,20 @@ bool SharedBuffer::isRunning() const
 void SharedBuffer::addProducer()
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (quitSignal_.load())
+    {
+        return;
+    }
     producers_.push_back(new Producer(this, std::chrono::milliseconds(500)));
 }
 
 void SharedBuffer::addConsumer()
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    if (quitSignal_.load())
+    {
+        return;
+    }
     consumers_.push_back(new Consumer(this, std::chrono::milliseconds(500)));
 }
 
