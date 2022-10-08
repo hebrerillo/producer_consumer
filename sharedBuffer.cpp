@@ -3,7 +3,7 @@
 #include "producer.h"
 #include "consumer.h"
 
-SharedBuffer::SharedBuffer(const std::vector<IBufferItem* >& buffer)
+SharedBuffer::SharedBuffer(const ItemsBuffer& buffer)
 : currentIndex_(0)
 , buffer_(buffer)
 , quitSignal_(false)
@@ -76,7 +76,7 @@ void SharedBuffer::addConsumer()
 void SharedBuffer::removeConsumer()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    std::list<Consumer* >::iterator consumerIterator = consumers_.begin();
+    ConsumerIterator consumerIterator = consumers_.begin();
     if (consumerIterator == consumers_.end())
     {
         return;
@@ -94,7 +94,7 @@ void SharedBuffer::removeConsumer()
 void SharedBuffer::removeProducer()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    std::list<Producer* >::iterator producerIterator = producers_.begin();
+    ProducerIterator producerIterator = producers_.begin();
     if (producerIterator == producers_.end())
     {
         return;

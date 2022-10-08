@@ -8,7 +8,7 @@
 
 int main()
 {
-    std::vector<IBufferItem* > buffer;
+    SharedBuffer::ItemsBuffer buffer;
     for(size_t i = 0; i < 10; i++)
     {
         buffer.push_back(new BufferItem);

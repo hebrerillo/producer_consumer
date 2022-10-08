@@ -68,6 +68,9 @@ private:
 class SharedBuffer
 {
 public:
+    using ProducerIterator = std::list<Producer* >::iterator;
+    using ConsumerIterator = std::list<Consumer* >::iterator;
+    using ItemsBuffer = std::vector<IBufferItem* >;
 
     /**
      * Constructor
@@ -75,7 +78,7 @@ public:
      * @param[int/out] buffer The buffer to produce and consume items. 
      * @note Important!! All the items in the buffer should be empty.
      */
-    SharedBuffer(const std::vector<IBufferItem* >& buffer);
+    SharedBuffer(const ItemsBuffer& buffer);
 
     /**
      * Adds an element to the buffer in the 'currentIndex_' position and increases 'currentIndex_'. This is the producer role.
@@ -133,7 +136,7 @@ public:
 
 private:
     size_t currentIndex_; //The index of the last produced item.
-    std::vector<IBufferItem* > buffer_;
+    ItemsBuffer buffer_;
     std::mutex mutex_;
     std::condition_variable quitCV_;
     std::atomic<bool> quitSignal_;
