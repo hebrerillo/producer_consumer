@@ -61,24 +61,24 @@ bool SharedBuffer::isRunning() const
     return !quitSignal_.load();
 }
 
-void SharedBuffer::addProducer()
+void SharedBuffer::addProducer(const std::chrono::milliseconds& delay)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     if (quitSignal_.load())
     {
         return;
     }
-    producers_.push_back(new Producer(this, std::chrono::milliseconds(500)));
+    producers_.push_back(new Producer(this, delay));
 }
 
-void SharedBuffer::addConsumer()
+void SharedBuffer::addConsumer(const std::chrono::milliseconds& delay)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     if (quitSignal_.load())
     {
         return;
     }
-    consumers_.push_back(new Consumer(this, std::chrono::milliseconds(500)));
+    consumers_.push_back(new Consumer(this, delay));
 }
 
 void SharedBuffer::removeConsumer()

@@ -4,6 +4,7 @@
 #include <list>
 #include <assert.h>
 #include <atomic>
+#include <chrono>
 
 class Producer;
 class Consumer;
@@ -106,13 +107,17 @@ public:
 
     /**
      * Adds a producer to produce items into the buffer 'buffer_'.
+     *
+     * @param[in] delay The delay the producer will take after producing an element.
      */
-    void addProducer();
+    void addProducer(const std::chrono::milliseconds& delay);
 
     /**
      * Adds a consumer to consume items from 'buffer_'.
+     *
+     * @param[in] delay The delay the consumer will take after consuming an element.
      */
-    void addConsumer();
+    void addConsumer(const std::chrono::milliseconds& delay);
 
     /**
      * Removes a consumer.
