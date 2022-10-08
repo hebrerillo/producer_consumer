@@ -87,7 +87,7 @@ public:
     /**
      * Extracts the element 'currentIndex_' from the buffer and decreases 'currentIndex_'. This is the consumer role.
      *
-     * @param[in] consumer The consumer
+     * @param[in] consumer The consumer.
      */
     void pop(const Consumer* consumer);
 
@@ -101,10 +101,42 @@ public:
      */
     bool isRunning() const;
 
+    /**
+     * Adds a producer to produce items into the buffer 'buffer_'.
+     */
+    void addProducer();
+
+    /**
+     * Adds a consumer to consume items from 'buffer_'.
+     */
+    void addConsumer();
+
+    /**
+     * Removes a consumer.
+     */
+    void removeConsumer();
+
+    /**
+     * Removes a producer.
+     */
+    void removeProducer();
+
+    /**
+     * Removes all consumers.
+     */
+    void removeConsumers();
+
+    /**
+     * Removes all producers.
+     */
+    void removeProducers();
+
 private:
     size_t currentIndex_; //The index of the last produced item.
     std::vector<IBufferItem* > buffer_;
-    std::mutex mutex_; //To syncrhonize accesses to 'buffer_' and 'currentIndex_'.
+    std::mutex mutex_;
     std::condition_variable quitCV_;
     std::atomic<bool> quitSignal_;
+    std::list<Consumer* > consumers_;
+    std::list<Producer* > producers_;
 };

@@ -25,6 +25,7 @@ public:
      */
     void stop();
 
+    ~Producer();
 private:
 
     /**

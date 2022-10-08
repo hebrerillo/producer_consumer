@@ -15,7 +15,6 @@ bool Producer::isRunning() const
 void Producer::stop()
 {
     quitSignal_.exchange(true);
-    thread_.join();
 }
 
 void Producer::run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
@@ -25,4 +24,9 @@ void Producer::run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
         buffer->push(this);
         std::this_thread::sleep_for(delay);
     }
+}
+
+Producer::~Producer()
+{
+    thread_.join();
 }

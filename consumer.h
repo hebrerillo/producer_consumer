@@ -23,6 +23,7 @@ public:
      */
     void stop();
 
+    ~Consumer();
 private:
 
     /**

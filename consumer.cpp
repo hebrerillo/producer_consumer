@@ -15,7 +15,6 @@ bool Consumer::isRunning() const
 void Consumer::stop()
 {
     quitSignal_.exchange(true);
-    thread_.join();
 }
 
 void Consumer::run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
@@ -25,4 +24,9 @@ void Consumer::run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
         buffer->pop(this);
         std::this_thread::sleep_for(delay);
     }
+}
+
+Consumer::~Consumer()
+{
+    thread_.join();
 }

@@ -53,9 +53,72 @@ void SharedBuffer::stop()
     quitSignal_.exchange(true); //If the signaling is performed without locking, Helgrind complains that the lock associated with 'quitSignal' is not held by any thread.
     quitCV_.notify_all();
     lock.unlock();
+
+    removeProducers();
+    removeConsumers();
 }
 
 bool SharedBuffer::isRunning() const
 {
     return !quitSignal_.load();
+}
+
+void SharedBuffer::addProducer()
+{
+    producers_.push_back(new Producer(this, std::chrono::milliseconds(500)));
+}
+
+void SharedBuffer::addConsumer()
+{
+    consumers_.push_back(new Consumer(this, std::chrono::milliseconds(500)));
+}
+
+void SharedBuffer::removeConsumer()
+{
+    std::list<Consumer* >::iterator consumerIterator = consumers_.begin();
+    if (consumerIterator == consumers_.end())
+    {
+        return;
+    }
+
+    std::unique_lock<std::mutex> lock(mutex_);
+    (*consumerIterator)->stop();
+    quitCV_.notify_all();
+    lock.unlock();
+
+    delete (*consumerIterator);
+    consumers_.erase(consumerIterator);
+}
+
+void SharedBuffer::removeProducer()
+{
+    std::list<Producer* >::iterator producer = producers_.begin();
+    if (producer == producers_.end())
+    {
+        return;
+    }
+
+    std::unique_lock<std::mutex> lock(mutex_);
+    (*producer)->stop();
+    quitCV_.notify_all();
+    lock.unlock();
+
+    delete (*producer);
+    producers_.erase(producer);
+}
+
+void SharedBuffer::removeConsumers()
+{
+    while(!consumers_.empty())
+    {
+        removeConsumer();
+    }
+}
+
+void SharedBuffer::removeProducers()
+{
+    while(!producers_.empty())
+    {
+        removeProducer();
+    }
 }
