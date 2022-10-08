@@ -25,7 +25,6 @@ void SharedBuffer::push(const Producer* producer)
             return currentIndex_ < buffer_.size() || quitSignal_.load() || !producer->isRunning();
         });
     }
-    lock.unlock();
 }
 
 void SharedBuffer::pop(const Consumer* consumer)
@@ -44,7 +43,6 @@ void SharedBuffer::pop(const Consumer* consumer)
             return (currentIndex_ > 0) || quitSignal_.load() || !consumer->isRunning();
         });
     }
-    lock.unlock();
 }
 
 void SharedBuffer::stop()
