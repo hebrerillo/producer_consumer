@@ -8,6 +8,38 @@
 #define DEFAULT_DELAY 500       //The delay that produces and consumers will take after producing and consuming an element, respectively.
 #define DEFAULT_BUFFER_SIZE 20
 
+/**
+ * An implementation of an item that is suitable to be produced and consumed in the shared buffer.
+ */
+class BufferItem: public IBufferItem
+{
+public:
+    BufferItem()
+    : value_(false)
+    {}
+
+    void fill() override
+    {
+        assert(!value_);
+        value_ = true;
+    }
+
+    void empty() override
+    {
+        assert(value_);
+        value_ = false;
+    }
+
+    operator bool() const override
+    {
+        return value_;
+    }
+
+private:
+    bool value_;
+};
+
+
 int main()
 {
     std::chrono::milliseconds defaultDelay(DEFAULT_DELAY);

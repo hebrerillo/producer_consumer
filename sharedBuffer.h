@@ -8,62 +8,10 @@
 #include <assert.h>
 #include <atomic>
 #include <chrono>
+#include "IBufferItem.h"
 
 class Producer;
 class Consumer;
-
-/**
- * Class that represents an item that can be inserted in the shared buffer.
- * The item can be filled by a producir by calling 'fill', or it can be emptied by a consumer by calling 'empty'.
- */
-class IBufferItem
-{
-public:
-    /**
-     * Fills this item.
-     */
-    virtual void fill() = 0;
-
-    /**
-     * Empties this item.
-     */
-    virtual void empty() = 0;
-
-    /**
-     * @return true if the item is filled, false if the item is empty.
-     */
-    virtual operator bool () const = 0;
-
-    virtual ~IBufferItem(){}
-};
-
-class BufferItem: public IBufferItem
-{
-public:
-    BufferItem()
-    : value_(false)
-    {}
-
-    void fill() override
-    {
-        assert(!value_);
-        value_ = true;
-    }
-
-    void empty() override
-    {
-        assert(value_);
-        value_ = false;
-    }
-
-    operator bool() const override
-    {
-        return value_;
-    }
-
-private:
-    bool value_;
-};
 
 /**
  * Class that represents the shared buffer between producers and consumers.

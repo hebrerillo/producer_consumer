@@ -42,3 +42,5 @@ private:
     std::thread thread_;
     std::atomic<bool> quitSignal_;
 };
+
+#endif

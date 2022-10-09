@@ -17,7 +17,10 @@ all:  $(TARGETS)
 main: main.o producer.o consumer.o sharedBuffer.o
 	$(CC) -o main $^ $(LFLAGS)	
 
-main.o: main.cpp
+main.o: main.cpp IBufferItem.h
+	$(CC) $(CFLAGS) -c $^
+
+sharedBuffer.o: sharedBuffer.cpp sharedBuffer.h IBufferItem.h
 	$(CC) $(CFLAGS) -c $^
 
 clean:
