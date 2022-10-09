@@ -85,6 +85,7 @@ public:
      * Adds an element to the buffer in the 'currentIndex_' position and increases 'currentIndex_'. This is the producer role.
      *
      * @param[in] producer The producer.
+     * @note If the buffer is full, this call will block until a consumer consumes an item.
      */
     void produce(const Producer* producer);
 
@@ -92,6 +93,7 @@ public:
      * Extracts the element 'currentIndex_' from the buffer and decreases 'currentIndex_'. This is the consumer role.
      *
      * @param[in] consumer The consumer.
+     * @note If the buffer is empty, this call will block until a producer produces an item.
      */
     void consume(const Consumer* consumer);
 
@@ -101,7 +103,7 @@ public:
     void stop();
 
     /**
-     * Whether the buffer is accepting and returning elements.
+     * Whether producers and consumers can produce and consume elements respectively.
      */
     bool isRunning() const;
 
