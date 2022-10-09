@@ -1,3 +1,6 @@
+#ifndef PC_SHARED_BUFFER_H
+#define PC_SHARED_BUFFER_H
+
 #include <mutex>
 #include <condition_variable>
 #include <vector>
@@ -150,3 +153,5 @@ private:
     std::list<Consumer* > consumers_;
     std::list<Producer* > producers_;
 };
+
+#endif

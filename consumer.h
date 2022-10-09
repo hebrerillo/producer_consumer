@@ -1,3 +1,6 @@
+#ifndef PC_CONSUMER_H
+#define PC_CONSUMER_H
+
 #include <thread>
 #include <atomic>
 

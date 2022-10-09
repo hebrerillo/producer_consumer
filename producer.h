@@ -1,3 +1,6 @@
+#ifndef PC_PRODUCER_H
+#define PC_PRODUCER_H
+
 #include <thread>
 #include <atomic>
 
