@@ -1,6 +1,6 @@
 CC     = g++
 CFLAGS = -Wall -Werror -Wextra -Wno-unused-parameter -Wno-unused-variable -g -std=c++0x
-LFLAGS = -pthread -lanl -lrt
+LFLAGS = -pthread
 TARGETS = main
 
 %.o: %.cpp %.h
