@@ -20,8 +20,6 @@ class Consumer;
 class SharedBuffer
 {
 public:
-    using ProducerIterator = std::list<Producer* >::iterator;
-    using ConsumerIterator = std::list<Consumer* >::iterator;
     using ItemsBuffer = std::vector<IBufferItem* >;
 
     /**
@@ -30,7 +28,7 @@ public:
      * @param[int/out] buffer The buffer to produce and consume items. 
      * @note Important!! All the items in the buffer should be empty.
      */
-    SharedBuffer(const ItemsBuffer& buffer);
+    explicit SharedBuffer(const ItemsBuffer& buffer);
 
     /**
      * Adds an element to the buffer in the 'currentIndex_' position and increases 'currentIndex_'. This is the producer role.
@@ -54,52 +52,21 @@ public:
     void stop();
 
     /**
+     * Notifies that an external event happened. An example of an external event is the removal of a producer or a consumer.
+     */
+    void notify();
+
+    /**
      * Whether producers and consumers can produce and consume elements respectively.
      */
     bool isRunning() const;
 
-    /**
-     * Adds a producer to produce items into the buffer 'buffer_'.
-     *
-     * @param[in] delay The delay the producer will take after producing an element.
-     */
-    void addProducer(const std::chrono::milliseconds& delay);
-
-    /**
-     * Adds a consumer to consume items from 'buffer_'.
-     *
-     * @param[in] delay The delay the consumer will take after consuming an element.
-     */
-    void addConsumer(const std::chrono::milliseconds& delay);
-
-    /**
-     * Removes a consumer.
-     */
-    void removeConsumer();
-
-    /**
-     * Removes a producer.
-     */
-    void removeProducer();
-
-    /**
-     * Removes all consumers.
-     */
-    void removeConsumers();
-
-    /**
-     * Removes all producers.
-     */
-    void removeProducers();
-
 private:
-    size_t currentIndex_; //The index of the last produced item.
+    size_t currentIndex_; //The index of the next item to be produced.
     ItemsBuffer buffer_;
-    std::mutex mutex_;
+    std::mutex mutex_; //To synchornize accesses to 'currentIndex_' and 'buffer_'.
     std::condition_variable quitCV_;
     std::atomic<bool> quitSignal_;
-    std::list<Consumer* > consumers_;
-    std::list<Producer* > producers_;
 };
 
 #endif

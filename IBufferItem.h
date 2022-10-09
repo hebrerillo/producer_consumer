@@ -1,3 +1,6 @@
+#ifndef PC_IBUFFER_ITEM_H
+#define PC_IBUFFER_ITEM_H
+
 /**
  * Class that represents an item that can be inserted in the shared buffer.
  * The item can be filled by a producer by calling 'fill', or it can be emptied by a consumer by calling 'empty'.
@@ -15,10 +18,7 @@ public:
      */
     virtual void empty() = 0;
 
-    /**
-     * @return true if the item is filled, false if the item is empty.
-     */
-    virtual operator bool () const = 0;
-
     virtual ~IBufferItem(){}
 };
+
+#endif

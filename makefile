@@ -14,7 +14,7 @@ TARGETS = main
 
 all:  $(TARGETS)
 
-main: main.o producer.o consumer.o sharedBuffer.o
+main: main.o producer.o consumer.o sharedBuffer.o manager.o
 	$(CC) -o main $^ $(LFLAGS)	
 
 main.o: main.cpp IBufferItem.h

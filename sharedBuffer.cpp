@@ -48,87 +48,17 @@ void SharedBuffer::consume(const Consumer* consumer)
 void SharedBuffer::stop()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    quitSignal_.exchange(true); //If the signaling is performed without locking, Helgrind complains that the lock associated with 'quitSignal' is not held by any thread.
-    quitCV_.notify_all();
-    lock.unlock();
+    quitSignal_.exchange(true);
+    quitCV_.notify_all(); //If the signaling is performed without locking, Helgrind complains that the lock associated with 'quitSignal' is not held by any thread.
+}
 
-    removeProducers();
-    removeConsumers();
+void SharedBuffer::notify()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    quitCV_.notify_all();
 }
 
 bool SharedBuffer::isRunning() const
 {
     return !quitSignal_.load();
-}
-
-void SharedBuffer::addProducer(const std::chrono::milliseconds& delay)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (quitSignal_.load())
-    {
-        return;
-    }
-    producers_.push_back(new Producer(this, delay));
-}
-
-void SharedBuffer::addConsumer(const std::chrono::milliseconds& delay)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    if (quitSignal_.load())
-    {
-        return;
-    }
-    consumers_.push_back(new Consumer(this, delay));
-}
-
-void SharedBuffer::removeConsumer()
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    ConsumerIterator consumerIterator = consumers_.begin();
-    if (consumerIterator == consumers_.end())
-    {
-        return;
-    }
-    
-    Consumer* consumer = *(consumerIterator);
-    consumer->stop();
-    quitCV_.notify_all();
-    consumers_.erase(consumerIterator);
-    lock.unlock();
-
-    delete consumer;
-}
-
-void SharedBuffer::removeProducer()
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    ProducerIterator producerIterator = producers_.begin();
-    if (producerIterator == producers_.end())
-    {
-        return;
-    }
-
-    Producer* producer = *(producerIterator);
-    producer->stop();
-    quitCV_.notify_all();
-    producers_.erase(producerIterator);
-    lock.unlock();
-
-    delete producer;
-}
-
-void SharedBuffer::removeConsumers()
-{
-    while(!consumers_.empty())
-    {
-        removeConsumer();
-    }
-}
-
-void SharedBuffer::removeProducers()
-{
-    while(!producers_.empty())
-    {
-        removeProducer();
-    }
 }
