@@ -24,5 +24,5 @@ sharedBuffer.o: sharedBuffer.cpp sharedBuffer.h IBufferItem.h
 	$(CC) $(CFLAGS) -c $^
 
 clean:
-	-rm *.o core* $(TARGETS)
+	-rm -f *.gch *.o core* $(TARGETS)
 	
