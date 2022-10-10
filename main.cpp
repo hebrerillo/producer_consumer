@@ -25,12 +25,28 @@ static void destroyBufferElements(SharedBuffer::ItemsBuffer& buffer)
     }
 }
 
+static void showMenu()
+{
+    std::cout << "The following commands will be kindly accepted: " << std::endl << std::endl;
+    std::cout << "0: Quits the application. " << std::endl;
+    std::cout << "1: Add a producer. " << std::endl;
+    std::cout << "2: Add a consumer. " << std::endl;
+    std::cout << "3: Remove a producer. " << std::endl;
+    std::cout << "4: Remove a consumer. " << std::endl;
+    std::cout << "5: Remove all producers. " << std::endl;
+    std::cout << "6: Remove all consumers. " << std::endl;
+    std::cout << "7: Remove all producers and consumers. " << std::endl;
+    std::cout << "8: Add 5 producers. " << std::endl;
+    std::cout << "9: Add 5 consumers. " << std::endl;
+}
+
 int main()
 {
     SharedBuffer::ItemsBuffer buffer;
     addBufferElements(buffer);
     ProducerConsumerManager manager(buffer);
 
+    showMenu();
     int input = -1;
     while (input != 0)
     {
