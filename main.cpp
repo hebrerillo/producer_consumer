@@ -35,14 +35,26 @@ private:
 };
 
 
-int main()
+static void addBufferElements(SharedBuffer::ItemsBuffer& buffer)
 {
-    SharedBuffer::ItemsBuffer buffer;
     for(size_t i = 0; i < DEFAULT_BUFFER_SIZE; i++)
     {
         buffer.push_back(new BufferItem);
     }
+}
 
+static void destroyBufferElements(SharedBuffer::ItemsBuffer& buffer)
+{
+    for(auto itemBuffer: buffer)
+    {
+        delete itemBuffer;
+    }
+}
+
+int main()
+{
+    SharedBuffer::ItemsBuffer buffer;
+    addBufferElements(buffer);
     ProducerConsumerManager manager(buffer);
 
     int input = -1;
@@ -90,10 +102,7 @@ int main()
 
     manager.stop();
 
-    for(auto itemBuffer: buffer)
-    {
-        delete itemBuffer;
-    }
+    destroyBufferElements(buffer);
 
     return 0;
 }
