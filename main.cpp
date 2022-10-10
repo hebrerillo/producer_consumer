@@ -35,9 +35,8 @@ static void showMenu()
     std::cout << "4: Remove a consumer. " << std::endl;
     std::cout << "5: Remove all producers. " << std::endl;
     std::cout << "6: Remove all consumers. " << std::endl;
-    std::cout << "7: Remove all producers and consumers. " << std::endl;
-    std::cout << "8: Add 5 producers. " << std::endl;
-    std::cout << "9: Add 5 consumers. " << std::endl;
+    std::cout << "7: Add 5 producers. " << std::endl;
+    std::cout << "8: Add 5 consumers. " << std::endl;
 }
 
 int main()
@@ -71,17 +70,14 @@ int main()
             case 6:
                 manager.removeConsumers();
                 break;
-            case 7:
-                manager.removeConsumers();
-                manager.removeProducers();
                 break;
-            case 8:
+            case 7:
                 for(size_t i = 0; i < 5; ++i)
                 {
                     manager.addProducer(std::chrono::milliseconds(DEFAULT_DELAY));
                 }
                 break;
-            case 9:
+            case 8:
                 for(size_t i = 0; i < 5; ++i)
                 {
                     manager.addConsumer(std::chrono::milliseconds(DEFAULT_DELAY));
