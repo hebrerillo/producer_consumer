@@ -21,7 +21,7 @@ void Producer::stop()
 
 void Producer::run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
 {
-    while(buffer->isRunning() && !quitSignal_.load())
+    while(buffer->isRunning())
     {
         buffer->produce(this);
 

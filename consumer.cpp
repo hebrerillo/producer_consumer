@@ -21,7 +21,7 @@ void Consumer::stop()
 
 void Consumer::run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
 {
-    while(buffer->isRunning() && !quitSignal_.load())
+    while(buffer->isRunning())
     {
         buffer->consume(this);
 
