@@ -32,6 +32,15 @@ public:
 private:
 
     /**
+     * Make this consumer to rest by sleeping 'delay' milliseconds, unless 'quitSignal_' is raised, in which case
+     * the call returns immediately.
+     *
+     * @param[in] delay The amount of milliseconds that this consumer will sleep.
+     * @return true if this consumer slept 'delay' milliseconds, false if 'quitSignal_' was raised while the sleeping time.
+     */
+    bool rest(const std::chrono::milliseconds& delay);
+
+    /**
      * Starts extracting elements from the buffer 'buffer'.
      *
      * @param[in/out] buffer The buffer to extract elements from.

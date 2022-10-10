@@ -34,6 +34,15 @@ public:
 private:
 
     /**
+     * Make this producer to rest by sleeping 'delay' milliseconds, unless 'quitSignal_' is raised, in which case
+     * the call returns immediately.
+     *
+     * @param[in] delay The amount of milliseconds that this producer will sleep.
+     * @return true if this producer slept 'delay' milliseconds, false if 'quitSignal_' was raised while the sleeping time.
+     */
+    bool rest(const std::chrono::milliseconds& delay);
+
+    /**
      * Starts adding elements to the buffer 'buffer'.
      *
      * @param[in/out] buffer The buffer to insert elements to.

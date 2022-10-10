@@ -4,4 +4,4 @@
 
 - Use of condition variables.
 - The example supports several producers and consumers.
-- Use of abstract class to represent items in the shared buffer.
+- Producers and consumers rest for a specific amount of time after producing/consuming items. Unless they are stopped, in which case they return immediately.

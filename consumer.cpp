@@ -21,21 +21,21 @@ void Consumer::stop()
 
 void Consumer::run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
 {
-    while(buffer->isRunning())
+    while(buffer->isRunning() && rest(delay))
     {
         buffer->consume(this);
-
-        std::unique_lock<std::mutex> lock(mutex_);
-        auto quitPredicate = [this]()
-        {
-            return quitSignal_.load();
-        };
-
-        if (stopCV_.wait_for(lock, delay, quitPredicate))
-        {
-            return;
-        }
     }
+}
+
+bool Consumer::rest(const std::chrono::milliseconds& delay)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    auto quitPredicate = [this]()
+    {
+        return quitSignal_.load();
+    };
+
+    return !stopCV_.wait_for(lock, delay, quitPredicate);
 }
 
 Consumer::~Consumer()

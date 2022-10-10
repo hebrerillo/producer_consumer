@@ -21,21 +21,21 @@ void Producer::stop()
 
 void Producer::run(SharedBuffer* buffer, const std::chrono::milliseconds& delay)
 {
-    while(buffer->isRunning())
+    while(buffer->isRunning() && rest(delay))
     {
         buffer->produce(this);
-
-        std::unique_lock<std::mutex> lock(mutex_);
-        auto quitPredicate = [this]()
-        {
-            return quitSignal_.load();
-        };
-
-        if (stopCV_.wait_for(lock, delay, quitPredicate))
-        {
-            return;
-        }
     }
+}
+
+bool Producer::rest(const std::chrono::milliseconds& delay)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    auto quitPredicate = [this]()
+    {
+        return quitSignal_.load();
+    };
+
+    return !stopCV_.wait_for(lock, delay, quitPredicate);
 }
 
 Producer::~Producer()
