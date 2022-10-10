@@ -3,6 +3,8 @@
 
 #include <thread>
 #include <atomic>
+#include <mutex>
+#include <condition_variable>
 
 class SharedBuffer;
 
@@ -39,6 +41,8 @@ private:
 
     std::thread thread_;
     std::atomic<bool> quitSignal_;
+    std::mutex mutex_;
+    std::condition_variable stopCV_;
 };
 
 #endif
