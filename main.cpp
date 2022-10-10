@@ -37,8 +37,6 @@ private:
 
 int main()
 {
-    std::chrono::milliseconds defaultDelay(DEFAULT_DELAY);
-
     SharedBuffer::ItemsBuffer buffer;
     for(size_t i = 0; i < DEFAULT_BUFFER_SIZE; i++)
     {
@@ -54,16 +52,38 @@ int main()
         switch(input)
         {
             case 1:
-                manager.addProducer(defaultDelay);
+                manager.addProducer(std::chrono::milliseconds(DEFAULT_DELAY));
                 break;
             case 2:
-                manager.removeProducer();
+                manager.addConsumer(std::chrono::milliseconds(DEFAULT_DELAY));
                 break;
             case 3:
-                manager.addConsumer(defaultDelay);
+                manager.removeProducer();
                 break;
             case 4:
                 manager.removeConsumer();
+                break;
+            case 5:
+                manager.removeProducers();
+                break;
+            case 6:
+                manager.removeConsumers();
+                break;
+            case 7:
+                manager.removeConsumers();
+                manager.removeProducers();
+                break;
+            case 8:
+                for(size_t i = 0; i < 5; ++i)
+                {
+                    manager.addProducer(std::chrono::milliseconds(DEFAULT_DELAY));
+                }
+                break;
+            case 9:
+                for(size_t i = 0; i < 5; ++i)
+                {
+                    manager.addConsumer(std::chrono::milliseconds(DEFAULT_DELAY));
+                }
                 break;
         };
     }
