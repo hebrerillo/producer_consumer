@@ -3,36 +3,10 @@
 #include <chrono>
 #include <vector>
 #include "manager.h"
-#include "IBufferItem.h"
+#include "main.h"
 
 #define DEFAULT_DELAY 500       //The delay that produces and consumers will take after producing and consuming an element, respectively.
 #define DEFAULT_BUFFER_SIZE 20
-
-/**
- * An implementation of an item that is suitable to be produced and consumed in the shared buffer.
- */
-class BufferItem: public IBufferItem
-{
-public:
-    BufferItem()
-    : value_(false)
-    {}
-
-    void fill() override
-    {
-        assert(!value_);
-        value_ = true;
-    }
-
-    void empty() override
-    {
-        assert(value_);
-        value_ = false;
-    }
-
-private:
-    bool value_;
-};
 
 
 static void addBufferElements(SharedBuffer::ItemsBuffer& buffer)

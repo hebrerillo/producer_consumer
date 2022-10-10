@@ -5,7 +5,6 @@
 #include <condition_variable>
 #include <vector>
 #include <list>
-#include <assert.h>
 #include <atomic>
 #include <chrono>
 #include "IBufferItem.h"
