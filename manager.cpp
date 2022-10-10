@@ -11,7 +11,10 @@ void ProducerConsumerManager::addProducer(const std::chrono::milliseconds& delay
     {
         return;
     }
-    producers_.push_back(new Producer(&sharedBuffer_, delay));
+
+    Producer* producer = new Producer(&sharedBuffer_);
+    producer->start(delay);
+    producers_.push_back(producer);
 }
 
 void ProducerConsumerManager::addConsumer(const std::chrono::milliseconds& delay)
@@ -21,7 +24,9 @@ void ProducerConsumerManager::addConsumer(const std::chrono::milliseconds& delay
     {
         return;
     }
-    consumers_.push_back(new Consumer(&sharedBuffer_, delay));
+    Consumer* consumer = new Consumer(&sharedBuffer_);
+    consumer->start(delay);
+    consumers_.push_back(consumer);
 }
 
 void ProducerConsumerManager::removeConsumer()
@@ -45,7 +50,6 @@ void ProducerConsumerManager::removeConsumer(const ConsumerIterator& consumerIte
 
     Consumer* consumer = *(consumerIterator);
     consumer->stop();
-    sharedBuffer_.notify();
     consumers_.erase(consumerIterator);
     delete consumer;
 }
@@ -71,7 +75,6 @@ void ProducerConsumerManager::removeProducer(const ProducerIterator& producerIte
 
     Producer* producer = *(producerIterator);
     producer->stop();
-    sharedBuffer_.notify();
     producers_.erase(producerIterator);
     delete producer;
 }

@@ -14,13 +14,19 @@ TARGETS = main
 
 all:  $(TARGETS)
 
-main: main.o producer.o consumer.o sharedBuffer.o manager.o
+main: main.o producer.o consumer.o sharedBuffer.o manager.o IActor.o
 	$(CC) -o main $^ $(LFLAGS)	
 
 main.o: main.cpp IBufferItem.h
 	$(CC) $(CFLAGS) -c $^
 
 sharedBuffer.o: sharedBuffer.cpp sharedBuffer.h IBufferItem.h
+	$(CC) $(CFLAGS) -c $^
+
+producer.o: producer.h producer.cpp IActor.h sharedBuffer.h
+	$(CC) $(CFLAGS) -c $^
+
+consumer.o: consumer.h consumer.cpp IActor.h sharedBuffer.h
 	$(CC) $(CFLAGS) -c $^
 
 clean:
