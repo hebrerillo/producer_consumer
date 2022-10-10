@@ -23,6 +23,8 @@ static void destroyBufferElements(SharedBuffer::ItemsBuffer& buffer)
     {
         delete itemBuffer;
     }
+
+    buffer.clear();
 }
 
 static void showMenu()
