@@ -3,7 +3,7 @@
 #include <chrono>
 #include <vector>
 #include "manager.h"
-#include "main.h"
+#include "bufferItem.h"
 
 #define DEFAULT_DELAY 500       //The delay that produces and consumers will take after producing and consuming an element, respectively.
 #define DEFAULT_BUFFER_SIZE 20

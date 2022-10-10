@@ -1,7 +1,8 @@
 CC     = g++
 CFLAGS = -Wall -Werror -Wextra -Wno-unused-parameter -Wno-unused-variable -g -std=c++0x
 LFLAGS = -pthread
-TARGETS = main
+TARGETS = main test
+GTEST = /usr/lib/libgtest.a
 
 %.o: %.cpp %.h
 	$(CC) -c $(CFLAGS) $< -o $@
@@ -14,10 +15,10 @@ TARGETS = main
 
 all:  $(TARGETS)
 
-main: main.o producer.o consumer.o sharedBuffer.o manager.o IActor.o
-	$(CC) -o main $^ $(LFLAGS)	
+main: main.o producer.o consumer.o sharedBuffer.o manager.o IActor.o bufferItem.o
+	$(CC) -o main $^ $(LFLAGS)
 
-main.o: main.cpp main.h IBufferItem.h
+main.o: main.cpp bufferItem.h
 	$(CC) $(CFLAGS) -c $^
 
 sharedBuffer.o: sharedBuffer.cpp sharedBuffer.h IBufferItem.h
@@ -27,6 +28,12 @@ producer.o: producer.h producer.cpp IActor.h sharedBuffer.h
 	$(CC) $(CFLAGS) -c $^
 
 consumer.o: consumer.h consumer.cpp IActor.h sharedBuffer.h
+	$(CC) $(CFLAGS) -c $^
+
+test: test.o producer.o consumer.o sharedBuffer.o manager.o IActor.o bufferItem.o
+	$(CC) -o test $^ $(LFLAGS) $(GTEST)
+
+test.o: test.cpp
 	$(CC) $(CFLAGS) -c $^
 
 clean:
