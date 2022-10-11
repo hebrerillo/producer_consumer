@@ -20,11 +20,11 @@ void ProducerConsumerTest::TearDown()
     valgrindCheck_.leakCheckEnd();
 }
 
-void ProducerConsumerTest::addElementsToBuffer(size_t size)
+void ProducerConsumerTest::addElementsToBuffer(size_t size, size_t numberOfFilledElements)
 {
     for(size_t i = 0; i < size; ++i)
     {
-        buffer_.push_back(new BufferItem);
+        buffer_.push_back(new BufferItem(i < numberOfFilledElements));
     }
 }
 
@@ -81,7 +81,7 @@ TEST_F(ProducerConsumerTest, AfterInsertingALotOfConsumersAndProducersWithLongDe
 
 TEST_F(ProducerConsumerTest, WhenAddingOnlyOneProducer_ThenAfterWaitingTheSharedBufferIsFull)
 {
-    const size_t BUFFER_SIZE = 5000;
+    const size_t BUFFER_SIZE = 50;
     const uint64_t DELAY = 10;
 
     addElementsToBuffer(BUFFER_SIZE);
@@ -93,7 +93,7 @@ TEST_F(ProducerConsumerTest, WhenAddingOnlyOneProducer_ThenAfterWaitingTheShared
     
     for(auto bufferItem: buffer_)
     {
-        EXPECT_TRUE(bufferItem);
+        EXPECT_TRUE((*bufferItem));
     }
 }
 

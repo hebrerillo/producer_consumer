@@ -61,6 +61,12 @@ public:
     bool isRunning() const;
 
 private:
+
+    /**
+     * Calculates the current index based on the last filled item on 'buffer_'.
+     */
+    void calculateCurrentIndex();
+
     size_t currentIndex_; //The index of the next item to be produced.
     ItemsBuffer buffer_;
     std::mutex mutex_; //To synchornize accesses to 'currentIndex_' and 'buffer_'.

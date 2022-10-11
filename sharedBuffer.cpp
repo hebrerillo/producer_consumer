@@ -7,7 +7,14 @@ SharedBuffer::SharedBuffer(const ItemsBuffer& buffer)
 : currentIndex_(0)
 , buffer_(buffer)
 , quitSignal_(false)
-{}
+{
+    calculateCurrentIndex();
+}
+
+void SharedBuffer::calculateCurrentIndex()
+{
+    for(currentIndex_ = 0; (currentIndex_ < buffer_.size() && *(buffer_[currentIndex_])); currentIndex_++);
+}
 
 void SharedBuffer::produce(const Producer* producer)
 {

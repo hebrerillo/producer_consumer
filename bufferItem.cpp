@@ -1,7 +1,7 @@
 #include "bufferItem.h"
 
-BufferItem::BufferItem()
-: value_(false)
+BufferItem::BufferItem(bool filled)
+: value_(filled)
 {}
 
 void BufferItem::fill()

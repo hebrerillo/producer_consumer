@@ -11,7 +11,12 @@ class BufferItem: public IBufferItem
 {
 public:
 
-    BufferItem();
+    /**
+     * Constructor.
+     *
+     * @param[filled] Whether this item is filled.
+     */
+    explicit BufferItem(bool filled = false);
 
     /**
      * Sets this object as filled (or produced by a producer).

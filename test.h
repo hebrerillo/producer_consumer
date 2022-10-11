@@ -32,11 +32,12 @@ public:
     void TearDown() override;
 
     /**
-     * Add 'size' elements to the buffer 'buffer_'.
+     * Add 'size' elements to the buffer 'buffer_'. It also fills the first 'numberOfFilledElements' elements.
      *
      * @param[in] size The number of elements to add.
+     * @param[in] numberOfFilledElements The number of elements that will be filled
      */
-    void addElementsToBuffer(size_t size);
+    void addElementsToBuffer(size_t size, size_t numberOfFilledElements = 0);
 
     /**
      * Add a number of producers and consumers to a ProducerConsumerManager instance.
