@@ -8,7 +8,11 @@
 #define DEFAULT_DELAY 500       //The delay that produces and consumers will take after producing and consuming an element, respectively.
 #define DEFAULT_BUFFER_SIZE 20
 
-
+/**
+ * Add buffer items into 'buffer'.
+ *
+ * @param buffer The buffer to add items into.
+ */
 static void addBufferElements(SharedBuffer::ItemsBuffer& buffer)
 {
     for(size_t i = 0; i < DEFAULT_BUFFER_SIZE; i++)
@@ -17,6 +21,11 @@ static void addBufferElements(SharedBuffer::ItemsBuffer& buffer)
     }
 }
 
+/**
+ * Remove buffer items from 'buffer'.
+ *
+ * @param buffer The buffer to remove items from.
+ */
 static void destroyBufferElements(SharedBuffer::ItemsBuffer& buffer)
 {
     for(auto itemBuffer: buffer)
