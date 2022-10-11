@@ -79,6 +79,24 @@ TEST_F(ProducerConsumerTest, AfterInsertingALotOfConsumersAndProducersWithLongDe
     EXPECT_LT(elapsedTime.count(), MAX_ELAPSED_TIME);
 }
 
+TEST_F(ProducerConsumerTest, WhenAddingOnlyOneProducer_ThenAfterWaitingTheSharedBufferIsFull)
+{
+    const size_t BUFFER_SIZE = 5000;
+    const uint64_t DELAY = 10;
+
+    addElementsToBuffer(BUFFER_SIZE);
+    ProducerConsumerManager manager(buffer_);
+    manager.addProducer(std::chrono::milliseconds(DELAY));
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY * (BUFFER_SIZE + 1)));
+    manager.stop();
+    
+    for(auto bufferItem: buffer_)
+    {
+        EXPECT_TRUE(bufferItem);
+    }
+}
+
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

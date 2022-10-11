@@ -23,6 +23,8 @@ public:
      */
     void empty() override;
 
+    operator bool() const override;
+
 private:
     bool value_;
 };

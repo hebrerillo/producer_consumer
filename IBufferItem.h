@@ -18,6 +18,11 @@ public:
      */
     virtual void empty() = 0;
 
+    /**
+     * @return Whether this buffer item is filled or empty.
+     */
+    virtual operator bool() const = 0;
+
     virtual ~IBufferItem(){}
 };
 

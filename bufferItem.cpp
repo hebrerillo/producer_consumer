@@ -15,3 +15,8 @@ void BufferItem::empty()
     assert(value_);
     value_ = false;
 }
+
+BufferItem::operator bool() const
+{
+    return value_;
+}
