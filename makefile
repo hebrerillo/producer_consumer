@@ -4,6 +4,8 @@ LFLAGS = -pthread
 TARGETS = main test
 GTEST = /usr/lib/libgtest.a
 
+all: main test
+
 %.o: %.cpp %.h
 	$(CC) -c $(CFLAGS) $< -o $@
 
@@ -32,9 +34,6 @@ consumer.o: consumer.h consumer.cpp IActor.h sharedBuffer.h
 
 test: test.o producer.o consumer.o sharedBuffer.o manager.o IActor.o bufferItem.o
 	$(CC) -o test $^ $(LFLAGS) $(GTEST)
-
-test.o: test.cpp
-	$(CC) $(CFLAGS) -c $^
 
 clean:
 	-rm -f *.gch *.o core* $(TARGETS)
