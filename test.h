@@ -2,6 +2,8 @@
 #include "manager.h"
 #include "bufferItem.h"
 
+#include "valgrind_check.h"
+
 class ProducerConsumerTest: public ::testing::Test { 
 public: 
 
@@ -25,6 +27,8 @@ public:
         }
     };
 
+    void SetUp() override;
+
     void TearDown() override;
 
     /**
@@ -45,4 +49,7 @@ public:
 
 protected:
     SharedBuffer::ItemsBuffer buffer_;
+    unsigned long leaked, dubious, reachable, suppressed;
+    unsigned long finalLeaked, finalDubious, finalReachable, finalSuppressed;
+    ValgrindCheck valgrindCheck_;
 };

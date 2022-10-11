@@ -1,6 +1,12 @@
 #include <chrono>
 #include <math.h>
 #include "test.h"
+#include "valgrind/include/memcheck.h"
+
+void ProducerConsumerTest::SetUp()
+{
+    valgrindCheck_.leakCheckInit();
+}
 
 void ProducerConsumerTest::TearDown()
 {
@@ -10,6 +16,8 @@ void ProducerConsumerTest::TearDown()
     }
 
     buffer_.clear();
+
+    valgrindCheck_.leakCheckEnd();
 }
 
 void ProducerConsumerTest::addElementsToBuffer(size_t size)
@@ -47,7 +55,15 @@ TEST_F(ProducerConsumerTest, AfterInsertingALotOfConsumersAndProducersWithLongDe
     const size_t NUMBER_PRODUCERS = 180;
     const uint64_t DELAY = 500;
     const size_t BIG_BUFFER_SIZE = 2000;
-    const uint64_t MAX_ELAPSED_TIME = 40; //The maximum elapsed time before and after stopping the manager.
+    uint64_t MAX_ELAPSED_TIME = 40; //The maximum elapsed time before and after stopping the manager, in milliseconds.
+#ifdef LINUX
+    if (RUNNING_ON_VALGRIND)
+    {
+        MAX_ELAPSED_TIME = 1500;
+    }
+#endif
+
+
     addElementsToBuffer(BIG_BUFFER_SIZE);
     ProducerConsumerManager manager(buffer_);
     

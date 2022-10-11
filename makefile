@@ -1,5 +1,5 @@
 CC     = g++
-CFLAGS = -Wall -Werror -Wextra -Wno-unused-parameter -Wno-unused-variable -g -std=c++0x
+CFLAGS = -Wall -Werror -Wextra -Wno-unused-parameter -Wno-unused-variable -DLINUX -g -std=c++0x
 LFLAGS = -pthread
 TARGETS = main test
 GTEST = /usr/lib/libgtest.a
@@ -32,7 +32,7 @@ producer.o: producer.h producer.cpp IActor.h sharedBuffer.h
 consumer.o: consumer.h consumer.cpp IActor.h sharedBuffer.h
 	$(CC) $(CFLAGS) -c $^
 
-test: test.o producer.o consumer.o sharedBuffer.o manager.o IActor.o bufferItem.o
+test: test.o producer.o consumer.o sharedBuffer.o manager.o IActor.o bufferItem.o valgrind_check.o
 	$(CC) -o test $^ $(LFLAGS) $(GTEST)
 
 clean:
