@@ -4,7 +4,7 @@ LFLAGS = -pthread
 TARGETS = main test
 GTEST = /usr/lib/libgtest.a
 
-all: main test
+all: $(TARGETS)
 
 %.o: %.cpp %.h
 	$(CC) -c $(CFLAGS) $< -o $@
