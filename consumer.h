@@ -14,7 +14,7 @@ public:
     /**
      * @param[in/out] buffer The buffer where the consumer will extract values from.
      */
-    Consumer(SharedBuffer* buffer);
+    explicit Consumer(SharedBuffer* buffer);
 
 private:
 

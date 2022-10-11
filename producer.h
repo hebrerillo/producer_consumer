@@ -16,7 +16,7 @@ public:
      *
      * @param[in/out] buffer The buffer where the producer will insert values.
      */
-    Producer(SharedBuffer* buffer);
+    explicit Producer(SharedBuffer* buffer);
 
 private:
 
