@@ -103,3 +103,8 @@ void ProducerConsumerManager::stop()
     removeConsumers();
     sharedBuffer_.stop();
 }
+
+size_t ProducerConsumerManager::getCurrentIndex() const
+{
+    return sharedBuffer_.getCurrentIndex();
+}

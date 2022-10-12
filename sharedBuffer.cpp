@@ -69,3 +69,9 @@ bool SharedBuffer::isRunning() const
 {
     return !quitSignal_.load();
 }
+
+size_t SharedBuffer::getCurrentIndex() const
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    return currentIndex_;
+}

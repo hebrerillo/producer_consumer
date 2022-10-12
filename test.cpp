@@ -128,3 +128,32 @@ int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
+
+TEST_F(ProducerConsumerTest, WhenAddingAVeryFastProducerAndSomeSlowConsumersInAnEmptySharedBuffer_ThenAfterWaitingTheSharedBufferIsFull)
+{
+    const size_t BUFFER_SIZE = 10;
+    const uint64_t DELAY_PRODUCER = 40;
+    const size_t NUMBER_PRODUCERS = 1;
+    const uint64_t DELAY_CONSUMERS = 400;
+    const size_t NUMBER_CONSUMERS = 5;
+    
+    addElementsToBuffer(BUFFER_SIZE);
+    ProducerConsumerManager manager(buffer_);
+    
+    PC_Params params(NUMBER_PRODUCERS, NUMBER_CONSUMERS, DELAY_PRODUCER, DELAY_CONSUMERS, &manager);
+    createProducersAndConsumers(params);
+
+    size_t i = 0;
+    while(manager.getCurrentIndex() != BUFFER_SIZE && i < (DELAY_PRODUCER * 2))
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_PRODUCER/2));
+        i++;
+    }
+    manager.stop();
+    
+    EXPECT_EQ(manager.getCurrentIndex(), BUFFER_SIZE);
+    for(auto bufferItem: buffer_)
+    {
+        EXPECT_TRUE((*bufferItem));
+    }
+}

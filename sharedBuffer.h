@@ -60,6 +60,11 @@ public:
      */
     bool isRunning() const;
 
+    /**
+     * @return The index of the next item to be filled in the buffer.
+     */
+    size_t getCurrentIndex() const;
+
 private:
 
     /**
@@ -69,7 +74,7 @@ private:
 
     size_t currentIndex_; //The index of the next item to be produced.
     ItemsBuffer buffer_;
-    std::mutex mutex_; //To synchornize accesses to 'currentIndex_' and 'buffer_'.
+    mutable std::mutex mutex_; //To synchornize accesses to 'currentIndex_' and 'buffer_'.
     std::condition_variable quitCV_;
     std::atomic<bool> quitSignal_;
 };

@@ -62,6 +62,11 @@ public:
      */
     void stop();
 
+    /**
+     * @return The index of the next item to be filled in the buffer.
+     */
+    size_t getCurrentIndex() const;
+
 private:
 
     /**
