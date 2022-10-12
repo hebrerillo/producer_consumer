@@ -2,7 +2,7 @@ CC     = g++
 CFLAGS = -Wall -Werror -Wextra -Wno-unused-parameter -Wno-unused-variable -DLINUX -g -std=c++0x
 LFLAGS = -pthread
 TARGETS = main test
-GTEST = /usr/lib/libgtest.a
+GTEST = ./lib/libgtest.a
 
 all: $(TARGETS)
 
