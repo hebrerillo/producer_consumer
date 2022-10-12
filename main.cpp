@@ -1,3 +1,6 @@
+/**
+ * An executable shell with commands to test the producer-consumer implementation.
+ */
 #include <iostream>
 #include <thread>
 #include <chrono>
