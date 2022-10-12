@@ -1,7 +1,7 @@
 #include <chrono>
 #include <math.h>
 #include "test.h"
-#include "valgrind/include/memcheck.h"
+#include "valgrind/memcheck.h"
 
 void ProducerConsumerTest::SetUp()
 {

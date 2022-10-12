@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "valgrind_check.h"
-#include "valgrind/include/memcheck.h"
+#include "valgrind/memcheck.h"
 
 
 ValgrindCheck::ValgrindCheck()
