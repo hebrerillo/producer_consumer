@@ -157,3 +157,52 @@ TEST_F(ProducerConsumerTest, WhenAddingAVeryFastProducerAndSomeSlowConsumersInAn
         EXPECT_TRUE((*bufferItem));
     }
 }
+
+TEST_F(ProducerConsumerTest, WhenAddingSeveralProducersThatFillABuffer_ThenAfterRemovingAllProducersAndAddinConsumersTheBufferIsEmpty)
+{
+    const size_t BUFFER_SIZE = 10;
+    const uint64_t DELAY = 20;
+    const size_t NUMBER_PRODUCERS = 5;
+    const size_t NUMBER_CONSUMERS = 5;
+
+    addElementsToBuffer(BUFFER_SIZE);
+    ProducerConsumerManager manager(buffer_);
+
+    //Adding only producers
+    PC_Params params(NUMBER_PRODUCERS, 0, DELAY, 0, &manager);
+    createProducersAndConsumers(params);
+    
+    size_t i = 0;
+    while(manager.getCurrentIndex() != BUFFER_SIZE && i < (DELAY * 2))
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY/2));
+        i++;
+    }
+
+    //Let's check the producers filled the whole buffer
+    EXPECT_EQ(manager.getCurrentIndex(), BUFFER_SIZE);
+    for(auto bufferItem: buffer_)
+    {
+        EXPECT_TRUE((*bufferItem));
+    }
+
+    //Now remove all producers and add some consumers
+    manager.removeProducers();
+    params = PC_Params(0, NUMBER_CONSUMERS, 0, DELAY, &manager);
+    createProducersAndConsumers(params);
+
+    i = 0;
+    while(manager.getCurrentIndex() != 0 && i < (DELAY * 2))
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY/2));
+        i++;
+    }
+
+    //Let's check the consumers emptied the whole buffer
+    EXPECT_EQ(manager.getCurrentIndex(), 0);
+    for(auto bufferItem: buffer_)
+    {
+        EXPECT_FALSE((*bufferItem));
+    }
+    manager.stop();
+}
