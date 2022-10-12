@@ -81,19 +81,46 @@ TEST_F(ProducerConsumerTest, AfterInsertingALotOfConsumersAndProducersWithLongDe
 
 TEST_F(ProducerConsumerTest, WhenAddingOnlyOneProducer_ThenAfterWaitingTheSharedBufferIsFull)
 {
-    const size_t BUFFER_SIZE = 50;
-    const uint64_t DELAY = 10;
+    const size_t BUFFER_SIZE = 100;
+    const uint64_t DELAY = 5;
+    uint64_t EXTRA_DELAY = 1;
 
     addElementsToBuffer(BUFFER_SIZE);
     ProducerConsumerManager manager(buffer_);
     manager.addProducer(std::chrono::milliseconds(DELAY));
     
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY * (BUFFER_SIZE + 1)));
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY * (BUFFER_SIZE + EXTRA_DELAY)));
     manager.stop();
     
     for(auto bufferItem: buffer_)
     {
         EXPECT_TRUE((*bufferItem));
+    }
+}
+
+TEST_F(ProducerConsumerTest, WhenAddingOnlyOneConsumerInAFullSharedBuffer_ThenAfterWaitingTheSharedBufferIsEmpty)
+{
+    const size_t BUFFER_SIZE = 100;
+    const uint64_t DELAY = 5;
+    uint64_t EXTRA_DELAY = 3;
+
+#ifdef LINUX
+    if (RUNNING_ON_VALGRIND)
+    {
+        EXTRA_DELAY = 14;
+    }
+#endif
+
+    addElementsToBuffer(BUFFER_SIZE, BUFFER_SIZE);
+    ProducerConsumerManager manager(buffer_);
+    manager.addConsumer(std::chrono::milliseconds(DELAY));
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY * (BUFFER_SIZE + EXTRA_DELAY)));
+    manager.stop();
+    
+    for(auto bufferItem: buffer_)
+    {
+        EXPECT_FALSE((*bufferItem));
     }
 }
 
