@@ -17,55 +17,56 @@ public:
     using ConsumerIterator = std::list<Consumer* >::iterator;
 
     /**
-     * Constructor
+     * Sets the buffer that will be shared among producers and consumers. It also allow the internal buffer 'sharedBuffer_' to start accepting consumers and producers.
      *
-     * @param[int/out] buffer The buffer to produce and consume items.
+     * @param[in] buffer The shared buffer.
+     * @note This method should be followed by a call to stop. Calling this method twice without a call to stop will cause undefined behaviour.
      */
-    explicit ProducerConsumerManager(const SharedBuffer::ItemsBuffer& buffer);
+    static void start(const IPC::ItemsBuffer& buffer);
 
     /**
      * Adds a producer to produce items into the buffer 'buffer_'.
      *
      * @param[in] delay The delay the producer will take after producing an element.
      */
-    void addProducer(const std::chrono::milliseconds& delay);
+    static void addProducer(const std::chrono::milliseconds& delay);
 
     /**
      * Adds a consumer to consume items from 'buffer_'.
      *
      * @param[in] delay The delay the consumer will take after consuming an element.
      */
-    void addConsumer(const std::chrono::milliseconds& delay);
+    static void addConsumer(const std::chrono::milliseconds& delay);
 
     /**
      * Removes a consumer.
      */
-    void removeConsumer();
+    static void removeConsumer();
 
     /**
      * Removes a producer.
      */
-    void removeProducer();
+    static void removeProducer();
 
     /**
      * Removes all consumers.
      */
-    void removeConsumers();
+    static void removeConsumers();
 
     /**
      * Removes all producers.
      */
-    void removeProducers();
+    static void removeProducers();
 
     /**
      * Stops the shared buffer, the producers and the consumers.
      */
-    void stop();
+    static void stop();
 
     /**
      * @return The index of the next item to be filled in the buffer.
      */
-    size_t getCurrentIndex() const;
+    static size_t getCurrentIndex() ;
 
 private:
 
@@ -74,20 +75,20 @@ private:
      *
      * @param[in/out] consumerIterator The consumer iterator to be destroyed.
      */
-    void removeConsumer(const ConsumerIterator& consumerIterator);
+    static void removeConsumer(const ConsumerIterator& consumerIterator);
 
     /**
      * Removes a producer iterator from the 'producers_' list. It also stops the 'Producer' object associated with the itarator and frees its memory.
      *
      * @param[in/out] producerIterator The producer iterator to be destroyed.
      */
-    void removeProducer(const ProducerIterator& producerIterator);
+    static void removeProducer(const ProducerIterator& producerIterator);
 
-    SharedBuffer sharedBuffer_;
-    std::list<Consumer* > consumers_;
-    std::list<Producer* > producers_;
-    std::mutex mutexConsumers_; //Synchronizes accesses to 'consumers_'
-    std::mutex mutexProducers_; //Synchronizes accesses to 'producers_'
+    static SharedBuffer* sharedBuffer_;
+    static std::list<Consumer* > consumers_;
+    static std::list<Producer* > producers_;
+    static std::mutex mutexConsumers_; //Synchronizes accesses to 'consumers_'
+    static std::mutex mutexProducers_; //Synchronizes accesses to 'producers_'
 };
 
 #endif

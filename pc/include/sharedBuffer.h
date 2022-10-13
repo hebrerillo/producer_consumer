@@ -7,6 +7,7 @@
 #include <list>
 #include <atomic>
 #include <chrono>
+#include "IPC.h"
 #include "IBufferItem.h"
 
 class Producer;
@@ -19,7 +20,6 @@ class Consumer;
 class SharedBuffer
 {
 public:
-    using ItemsBuffer = std::vector<IBufferItem* >;
 
     /**
      * Constructor
@@ -27,7 +27,7 @@ public:
      * @param[int/out] buffer The buffer to produce and consume items. 
      * @note Important!! All the items in the buffer should be empty.
      */
-    explicit SharedBuffer(const ItemsBuffer& buffer);
+    explicit SharedBuffer(const IPC::ItemsBuffer& buffer);
 
     /**
      * Adds an element to the buffer in the 'currentIndex_' position and increases 'currentIndex_'. This is the producer role.
@@ -73,7 +73,7 @@ private:
     void calculateCurrentIndex();
 
     size_t currentIndex_; //The index of the next item to be produced.
-    ItemsBuffer buffer_;
+    IPC::ItemsBuffer buffer_;
     mutable std::mutex mutex_; //To synchornize accesses to 'currentIndex_' and 'buffer_'.
     std::condition_variable quitCV_;
     std::atomic<bool> quitSignal_;

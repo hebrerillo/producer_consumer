@@ -1,18 +1,26 @@
 #include "manager.h"
 
-ProducerConsumerManager::ProducerConsumerManager(const SharedBuffer::ItemsBuffer& buffer)
-: sharedBuffer_(buffer)
-{}
+SharedBuffer* ProducerConsumerManager::sharedBuffer_;
+
+std::list<Consumer* > ProducerConsumerManager::consumers_;
+std::list<Producer* > ProducerConsumerManager::producers_;
+std::mutex ProducerConsumerManager::mutexConsumers_;
+std::mutex ProducerConsumerManager::mutexProducers_;
+
+void ProducerConsumerManager::start(const IPC::ItemsBuffer& buffer)
+{
+    sharedBuffer_ = new SharedBuffer(buffer);
+}
 
 void ProducerConsumerManager::addProducer(const std::chrono::milliseconds& delay)
 {
     std::unique_lock<std::mutex> lock(mutexProducers_);
-    if (!sharedBuffer_.isRunning())
+    if (!sharedBuffer_->isRunning())
     {
         return;
     }
 
-    Producer* producer = new Producer(&sharedBuffer_);
+    Producer* producer = new Producer(sharedBuffer_);
     producer->start(delay);
     producers_.push_back(producer);
 }
@@ -20,11 +28,11 @@ void ProducerConsumerManager::addProducer(const std::chrono::milliseconds& delay
 void ProducerConsumerManager::addConsumer(const std::chrono::milliseconds& delay)
 {
     std::unique_lock<std::mutex> lock(mutexConsumers_);
-    if (!sharedBuffer_.isRunning())
+    if (!sharedBuffer_->isRunning())
     {
         return;
     }
-    Consumer* consumer = new Consumer(&sharedBuffer_);
+    Consumer* consumer = new Consumer(sharedBuffer_);
     consumer->start(delay);
     consumers_.push_back(consumer);
 }
@@ -101,10 +109,11 @@ void ProducerConsumerManager::stop()
 {
     removeProducers();
     removeConsumers();
-    sharedBuffer_.stop();
+    sharedBuffer_->stop();
+    delete sharedBuffer_;
 }
 
-size_t ProducerConsumerManager::getCurrentIndex() const
+size_t ProducerConsumerManager::getCurrentIndex()
 {
-    return sharedBuffer_.getCurrentIndex();
+    return sharedBuffer_->getCurrentIndex();
 }

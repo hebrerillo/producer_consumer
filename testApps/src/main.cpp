@@ -5,7 +5,7 @@
 #include <thread>
 #include <chrono>
 #include <vector>
-#include "manager.h"
+#include "IPC.h"
 #include "bufferItem.h"
 
 #define DEFAULT_DELAY 500       //The delay that produces and consumers will take after producing and consuming an element, respectively.
@@ -16,7 +16,7 @@
  *
  * @param buffer The buffer to add items into.
  */
-static void addBufferElements(SharedBuffer::ItemsBuffer& buffer)
+static void addBufferElements(IPC::ItemsBuffer& buffer)
 {
     for(size_t i = 0; i < DEFAULT_BUFFER_SIZE; i++)
     {
@@ -29,7 +29,7 @@ static void addBufferElements(SharedBuffer::ItemsBuffer& buffer)
  *
  * @param buffer The buffer to remove items from.
  */
-static void destroyBufferElements(SharedBuffer::ItemsBuffer& buffer)
+static void destroyBufferElements(IPC::ItemsBuffer& buffer)
 {
     for(auto itemBuffer: buffer)
     {
@@ -55,9 +55,9 @@ static void showMenu()
 
 int main()
 {
-    SharedBuffer::ItemsBuffer buffer;
+    IPC::ItemsBuffer buffer;
     addBufferElements(buffer);
-    ProducerConsumerManager manager(buffer);
+    IPC::start(buffer);
 
     showMenu();
     int input = -1;
@@ -67,39 +67,39 @@ int main()
         switch(input)
         {
             case 1:
-                manager.addProducer(std::chrono::milliseconds(DEFAULT_DELAY));
+                IPC::addProducer(std::chrono::milliseconds(DEFAULT_DELAY));
                 break;
             case 2:
-                manager.addConsumer(std::chrono::milliseconds(DEFAULT_DELAY));
+                IPC::addConsumer(std::chrono::milliseconds(DEFAULT_DELAY));
                 break;
             case 3:
-                manager.removeProducer();
+                IPC::removeProducer();
                 break;
             case 4:
-                manager.removeConsumer();
+                IPC::removeConsumer();
                 break;
             case 5:
-                manager.removeProducers();
+                IPC::removeProducers();
                 break;
             case 6:
-                manager.removeConsumers();
+                IPC::removeConsumers();
                 break;
             case 7:
                 for(size_t i = 0; i < 5; ++i)
                 {
-                    manager.addProducer(std::chrono::milliseconds(DEFAULT_DELAY));
+                    IPC::addProducer(std::chrono::milliseconds(DEFAULT_DELAY));
                 }
                 break;
             case 8:
                 for(size_t i = 0; i < 5; ++i)
                 {
-                    manager.addConsumer(std::chrono::milliseconds(DEFAULT_DELAY));
+                    IPC::addConsumer(std::chrono::milliseconds(DEFAULT_DELAY));
                 }
                 break;
         };
     }
 
-    manager.stop();
+    IPC::stop();
 
     destroyBufferElements(buffer);
 

@@ -1,7 +1,8 @@
 #include <chrono>
-#include <math.h>
+#include <thread>
 #include "test.h"
 #include "valgrind/memcheck.h"
+#include "bufferItem.h"
 
 void ProducerConsumerTest::SetUp()
 {
@@ -37,22 +38,22 @@ void ProducerConsumerTest::createProducersAndConsumers(const PC_Params& params)
     {
         if (indexProducers < params.numberOfProducers)
         {
-            params.manager->addProducer(std::chrono::milliseconds(params.producersDelay));
+            IPC::addProducer(std::chrono::milliseconds(params.producersDelay));
             indexProducers++;
         }
 
         if (indexConsumers < params.numberOfConsumers)
         {
-            params.manager->addConsumer(std::chrono::milliseconds(params.consumersDelay));
+            IPC::addConsumer(std::chrono::milliseconds(params.consumersDelay));
             indexConsumers++;
         }
     }
 }
 
-bool ProducerConsumerTest::waitForIndexValue(const ProducerConsumerManager& manager, size_t indexValue, uint64_t delay)
+bool ProducerConsumerTest::waitForIndexValue(size_t indexValue, uint64_t delay)
 {
     size_t i = 0;
-    while(manager.getCurrentIndex() != indexValue && i < (buffer_.size() * delay * 2))
+    while(IPC::getCurrentIndex() != indexValue && i < (buffer_.size() * delay * 2))
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(delay/2));
         i++;
@@ -69,7 +70,7 @@ TEST_F(ProducerConsumerTest, AfterInsertingALotOfConsumersAndProducersWithLongDe
     const size_t NUMBER_PRODUCERS = 180;
     const uint64_t DELAY = 500;
     const size_t BIG_BUFFER_SIZE = 2000;
-    uint64_t MAX_ELAPSED_TIME = 40; //The maximum elapsed time before and after stopping the manager, in milliseconds.
+    uint64_t MAX_ELAPSED_TIME = 40; //The maximum elapsed time before and after stopping the buffer from accepting/returning elements, in milliseconds.
 
     if (RUNNING_ON_VALGRIND)
     {
@@ -77,14 +78,14 @@ TEST_F(ProducerConsumerTest, AfterInsertingALotOfConsumersAndProducersWithLongDe
     }
 
     addElementsToBuffer(BIG_BUFFER_SIZE);
-    ProducerConsumerManager manager(buffer_);
-    
-    PC_Params params(NUMBER_PRODUCERS, NUMBER_CONSUMERS, DELAY, DELAY, &manager);
+    IPC::start(buffer_);
+
+    PC_Params params(NUMBER_PRODUCERS, NUMBER_CONSUMERS, DELAY, DELAY);
     createProducersAndConsumers(params);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY * 2));
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    manager.stop();
+    IPC::stop();
 
     std::chrono::milliseconds elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - begin);
 
@@ -97,11 +98,11 @@ TEST_F(ProducerConsumerTest, WhenAddingOnlyOneProducer_ThenAfterWaitingTheShared
     const uint64_t DELAY = 5;
 
     addElementsToBuffer(BUFFER_SIZE);
-    ProducerConsumerManager manager(buffer_);
-    manager.addProducer(std::chrono::milliseconds(DELAY));
+    IPC::start(buffer_);
+    IPC::addProducer(std::chrono::milliseconds(DELAY));
     
-    EXPECT_TRUE(waitForIndexValue(manager, BUFFER_SIZE, DELAY));
-    manager.stop();
+    EXPECT_TRUE(waitForIndexValue(BUFFER_SIZE, DELAY));
+    IPC::stop();
     
     for(auto bufferItem: buffer_)
     {
@@ -115,11 +116,11 @@ TEST_F(ProducerConsumerTest, WhenAddingOnlyOneConsumerInAFullSharedBuffer_ThenAf
     const uint64_t DELAY = 5;
 
     addElementsToBuffer(BUFFER_SIZE, BUFFER_SIZE);
-    ProducerConsumerManager manager(buffer_);
-    manager.addConsumer(std::chrono::milliseconds(DELAY));
+    IPC::start(buffer_);
+    IPC::addConsumer(std::chrono::milliseconds(DELAY));
     
-    EXPECT_TRUE(waitForIndexValue(manager, 0, DELAY));
-    manager.stop();
+    EXPECT_TRUE(waitForIndexValue(0, DELAY));
+    IPC::stop();
     
     for(auto bufferItem: buffer_)
     {
@@ -136,13 +137,13 @@ TEST_F(ProducerConsumerTest, WhenAddingAVeryFastProducerAndSomeSlowConsumersInAn
     const size_t NUMBER_CONSUMERS = 4;
     
     addElementsToBuffer(BUFFER_SIZE);
-    ProducerConsumerManager manager(buffer_);
+    IPC::start(buffer_);
     
-    PC_Params params(NUMBER_PRODUCERS, NUMBER_CONSUMERS, DELAY_PRODUCER, DELAY_CONSUMERS, &manager);
+    PC_Params params(NUMBER_PRODUCERS, NUMBER_CONSUMERS, DELAY_PRODUCER, DELAY_CONSUMERS);
     createProducersAndConsumers(params);
 
-    EXPECT_TRUE(waitForIndexValue(manager, BUFFER_SIZE, DELAY_PRODUCER));
-    manager.stop();
+    EXPECT_TRUE(waitForIndexValue(BUFFER_SIZE, DELAY_PRODUCER));
+    IPC::stop();
 }
 
 TEST_F(ProducerConsumerTest, WhenAddingSeveralProducersThatFillABuffer_ThenAfterRemovingAllProducersAndAddinConsumersTheBufferIsEmpty)
@@ -153,22 +154,22 @@ TEST_F(ProducerConsumerTest, WhenAddingSeveralProducersThatFillABuffer_ThenAfter
     const size_t NUMBER_CONSUMERS = 5;
 
     addElementsToBuffer(BUFFER_SIZE);
-    ProducerConsumerManager manager(buffer_);
+    IPC::start(buffer_);
 
     //Adding only producers
-    PC_Params params(NUMBER_PRODUCERS, 0, DELAY, 0, &manager);
+    PC_Params params(NUMBER_PRODUCERS, 0, DELAY, 0);
     createProducersAndConsumers(params);
     
-    EXPECT_TRUE(waitForIndexValue(manager, BUFFER_SIZE, DELAY));
+    EXPECT_TRUE(waitForIndexValue(BUFFER_SIZE, DELAY));
 
     //Now remove all producers and add some consumers
-    manager.removeProducers();
-    params = PC_Params(0, NUMBER_CONSUMERS, 0, DELAY, &manager);
+    IPC::removeProducers();
+    params = PC_Params(0, NUMBER_CONSUMERS, 0, DELAY);
     createProducersAndConsumers(params);
 
-    EXPECT_TRUE(waitForIndexValue(manager, 0, DELAY));
+    EXPECT_TRUE(waitForIndexValue(0, DELAY));
 
-    manager.stop();
+    IPC::stop();
 }
 
 int main(int argc, char **argv) {

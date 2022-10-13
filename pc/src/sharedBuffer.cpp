@@ -3,7 +3,7 @@
 #include "producer.h"
 #include "consumer.h"
 
-SharedBuffer::SharedBuffer(const ItemsBuffer& buffer)
+SharedBuffer::SharedBuffer(const IPC::ItemsBuffer& buffer)
 : currentIndex_(0)
 , buffer_(buffer)
 , quitSignal_(false)
