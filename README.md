@@ -6,8 +6,8 @@
 - [Executables](#executables)
   - [Bin folder](#bin-folder)
   - [Main shell](#main-shell)
-  - [Executable test target][#executable-test-target]
-    - [Valgrind][#valgrind]
+  - [Executable test target]([#executable-test-target])
+    - [Valgrind]([#valgrind])
 
 
 ## Build
