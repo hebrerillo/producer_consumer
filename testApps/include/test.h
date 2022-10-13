@@ -50,6 +50,14 @@ protected:
      */
     void createProducersAndConsumers(const PC_Params& params);
 
+    /**
+     * The method checks the index value of the shared buffer of 'manager' every delay/2 milliseconds, with a
+     * maximum number of tries of delay*2.
+     *
+     * @return true if the current index value of the shared buffer reaches 'indexValue', false otherwise.
+     */
+    bool waitForIndexValue(const ProducerConsumerManager& manager, size_t indexValue, uint64_t delay);
+
     SharedBuffer::ItemsBuffer buffer_;
     unsigned long leaked, dubious, reachable, suppressed;
     unsigned long finalLeaked, finalDubious, finalReachable, finalSuppressed;

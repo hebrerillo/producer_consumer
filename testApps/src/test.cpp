@@ -49,6 +49,20 @@ void ProducerConsumerTest::createProducersAndConsumers(const PC_Params& params)
     }
 }
 
+bool ProducerConsumerTest::waitForIndexValue(const ProducerConsumerManager& manager, size_t indexValue, uint64_t delay)
+{
+    size_t i = 0;
+    while(manager.getCurrentIndex() != indexValue && i < (delay * 2))
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay/2));
+        i++;
+    }
+
+    //Here we only check that the maximum number of tries is not reached. Checking the value of the shared buffer 'buffer_' is not safe because
+    //a producer or consumer could have modified it right after the loop above.
+    return i < (delay * 2);
+}
+
 TEST_F(ProducerConsumerTest, AfterInsertingALotOfConsumersAndProducersWithLongDelayIntoABigBuffer_ThenTheQuitProcessIsQuick)
 {
     const size_t NUMBER_CONSUMERS = 90;
@@ -134,19 +148,8 @@ TEST_F(ProducerConsumerTest, WhenAddingAVeryFastProducerAndSomeSlowConsumersInAn
     PC_Params params(NUMBER_PRODUCERS, NUMBER_CONSUMERS, DELAY_PRODUCER, DELAY_CONSUMERS, &manager);
     createProducersAndConsumers(params);
 
-    size_t i = 0;
-    while(manager.getCurrentIndex() != BUFFER_SIZE && i < (DELAY_PRODUCER * 2))
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_PRODUCER/2));
-        i++;
-    }
+    EXPECT_TRUE(waitForIndexValue(manager, BUFFER_SIZE, DELAY_PRODUCER));
     manager.stop();
-    
-    EXPECT_EQ(manager.getCurrentIndex(), BUFFER_SIZE);
-    for(auto bufferItem: buffer_)
-    {
-        EXPECT_TRUE((*bufferItem));
-    }
 }
 
 TEST_F(ProducerConsumerTest, WhenAddingSeveralProducersThatFillABuffer_ThenAfterRemovingAllProducersAndAddinConsumersTheBufferIsEmpty)
@@ -163,38 +166,15 @@ TEST_F(ProducerConsumerTest, WhenAddingSeveralProducersThatFillABuffer_ThenAfter
     PC_Params params(NUMBER_PRODUCERS, 0, DELAY, 0, &manager);
     createProducersAndConsumers(params);
     
-    size_t i = 0;
-    while(manager.getCurrentIndex() != BUFFER_SIZE && i < (DELAY * 2))
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY/2));
-        i++;
-    }
-
-    //Let's check the producers filled the whole buffer
-    EXPECT_EQ(manager.getCurrentIndex(), BUFFER_SIZE);
-    for(auto bufferItem: buffer_)
-    {
-        EXPECT_TRUE((*bufferItem));
-    }
+    EXPECT_TRUE(waitForIndexValue(manager, BUFFER_SIZE, DELAY));
 
     //Now remove all producers and add some consumers
     manager.removeProducers();
     params = PC_Params(0, NUMBER_CONSUMERS, 0, DELAY, &manager);
     createProducersAndConsumers(params);
 
-    i = 0;
-    while(manager.getCurrentIndex() != 0 && i < (DELAY * 2))
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(DELAY/2));
-        i++;
-    }
+    EXPECT_TRUE(waitForIndexValue(manager, 0, DELAY));
 
-    //Let's check the consumers emptied the whole buffer
-    EXPECT_EQ(manager.getCurrentIndex(), 0);
-    for(auto bufferItem: buffer_)
-    {
-        EXPECT_FALSE((*bufferItem));
-    }
     manager.stop();
 }
 
