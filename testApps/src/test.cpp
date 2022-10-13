@@ -83,7 +83,7 @@ TEST_F(ProducerConsumerTest, WhenAddingOnlyOneProducer_ThenAfterWaitingTheShared
 {
     const size_t BUFFER_SIZE = 100;
     const uint64_t DELAY = 5;
-    uint64_t EXTRA_DELAY = 1;
+    uint64_t EXTRA_DELAY = 3;
 
     addElementsToBuffer(BUFFER_SIZE);
     ProducerConsumerManager manager(buffer_);
@@ -122,11 +122,6 @@ TEST_F(ProducerConsumerTest, WhenAddingOnlyOneConsumerInAFullSharedBuffer_ThenAf
     {
         EXPECT_FALSE((*bufferItem));
     }
-}
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }
 
 TEST_F(ProducerConsumerTest, WhenAddingAVeryFastProducerAndSomeSlowConsumersInAnEmptySharedBuffer_ThenAfterWaitingTheSharedBufferIsFull)
@@ -205,4 +200,9 @@ TEST_F(ProducerConsumerTest, WhenAddingSeveralProducersThatFillABuffer_ThenAfter
         EXPECT_FALSE((*bufferItem));
     }
     manager.stop();
+}
+
+int main(int argc, char **argv) {
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
