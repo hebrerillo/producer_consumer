@@ -31,6 +31,8 @@ public:
 
     void TearDown() override;
 
+protected:
+
     /**
      * Add 'size' elements to the buffer 'buffer_'. It also fills the first 'numberOfFilledElements' elements.
      *
@@ -48,7 +50,6 @@ public:
      */
     void createProducersAndConsumers(const PC_Params& params);
 
-protected:
     SharedBuffer::ItemsBuffer buffer_;
     unsigned long leaked, dubious, reachable, suppressed;
     unsigned long finalLeaked, finalDubious, finalReachable, finalSuppressed;
