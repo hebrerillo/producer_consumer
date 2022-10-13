@@ -6,7 +6,7 @@
 - [Executables](#executables)
   - [Bin folder](#bin-folder)
   - [Main shell](#main-shell)
-  - [Tests][#executable-test-target]
+  - [Executable test target][#executable-test-target]
     - [Valgrind][#valgrind]
 
 
