@@ -1,7 +1,7 @@
 include_directories(${ProducerConsumer_SOURCE_DIR}/testApps/include)
 # I assume you want to use LibProject as a library in MainProject.
-include_directories(${ProducerConsumer_SOURCE_DIR}/producer_consumer/include)
-link_directories(${ProducerConsumer_SOURCE_DIR}/producer_consumer/src)
+include_directories(${ProducerConsumer_SOURCE_DIR}/pc/include)
+link_directories(${ProducerConsumer_SOURCE_DIR}/pc/src)
 
 add_executable(pcshell main.cpp)
 target_link_libraries(pcshell ProducerConsumer pthread)

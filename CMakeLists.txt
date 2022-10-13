@@ -4,6 +4,6 @@ project(ProducerConsumer)
 add_compile_options(-g -Wall -Wextra -pedantic -Werror)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${ProducerConsumer_SOURCE_DIR}/bin)
 
-add_subdirectory(producer_consumer)
+add_subdirectory(pc)
 add_subdirectory(testApps)
 
