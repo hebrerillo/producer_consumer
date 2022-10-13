@@ -84,7 +84,6 @@ int main()
             case 6:
                 manager.removeConsumers();
                 break;
-                break;
             case 7:
                 for(size_t i = 0; i < 5; ++i)
                 {

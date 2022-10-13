@@ -52,7 +52,7 @@ void ProducerConsumerTest::createProducersAndConsumers(const PC_Params& params)
 bool ProducerConsumerTest::waitForIndexValue(const ProducerConsumerManager& manager, size_t indexValue, uint64_t delay)
 {
     size_t i = 0;
-    while(manager.getCurrentIndex() != indexValue && i < (delay * 2))
+    while(manager.getCurrentIndex() != indexValue && i < (buffer_.size() * delay * 2))
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(delay/2));
         i++;
@@ -60,7 +60,7 @@ bool ProducerConsumerTest::waitForIndexValue(const ProducerConsumerManager& mana
 
     //Here we only check that the maximum number of tries is not reached. Checking the value of the shared buffer 'buffer_' is not safe because
     //a producer or consumer could have modified it right after the loop above.
-    return i < (delay * 2);
+    return i < (buffer_.size() * delay * 2);
 }
 
 TEST_F(ProducerConsumerTest, AfterInsertingALotOfConsumersAndProducersWithLongDelayIntoABigBuffer_ThenTheQuitProcessIsQuick)
@@ -95,13 +95,12 @@ TEST_F(ProducerConsumerTest, WhenAddingOnlyOneProducer_ThenAfterWaitingTheShared
 {
     const size_t BUFFER_SIZE = 100;
     const uint64_t DELAY = 5;
-    uint64_t EXTRA_DELAY = 15;
 
     addElementsToBuffer(BUFFER_SIZE);
     ProducerConsumerManager manager(buffer_);
     manager.addProducer(std::chrono::milliseconds(DELAY));
     
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY * (BUFFER_SIZE + EXTRA_DELAY)));
+    EXPECT_TRUE(waitForIndexValue(manager, BUFFER_SIZE, DELAY));
     manager.stop();
     
     for(auto bufferItem: buffer_)
@@ -114,18 +113,12 @@ TEST_F(ProducerConsumerTest, WhenAddingOnlyOneConsumerInAFullSharedBuffer_ThenAf
 {
     const size_t BUFFER_SIZE = 100;
     const uint64_t DELAY = 5;
-    uint64_t EXTRA_DELAY = 3;
-
-    if (RUNNING_ON_VALGRIND)
-    {
-        EXTRA_DELAY = 14;
-    }
 
     addElementsToBuffer(BUFFER_SIZE, BUFFER_SIZE);
     ProducerConsumerManager manager(buffer_);
     manager.addConsumer(std::chrono::milliseconds(DELAY));
     
-    std::this_thread::sleep_for(std::chrono::milliseconds(DELAY * (BUFFER_SIZE + EXTRA_DELAY)));
+    EXPECT_TRUE(waitForIndexValue(manager, 0, DELAY));
     manager.stop();
     
     for(auto bufferItem: buffer_)
@@ -136,11 +129,11 @@ TEST_F(ProducerConsumerTest, WhenAddingOnlyOneConsumerInAFullSharedBuffer_ThenAf
 
 TEST_F(ProducerConsumerTest, WhenAddingAVeryFastProducerAndSomeSlowConsumersInAnEmptySharedBuffer_ThenAfterWaitingTheSharedBufferIsFull)
 {
-    const size_t BUFFER_SIZE = 10;
-    const uint64_t DELAY_PRODUCER = 40;
+    const size_t BUFFER_SIZE = 50;
+    const uint64_t DELAY_PRODUCER = 20;
     const size_t NUMBER_PRODUCERS = 1;
-    const uint64_t DELAY_CONSUMERS = 400;
-    const size_t NUMBER_CONSUMERS = 5;
+    const uint64_t DELAY_CONSUMERS = 600;
+    const size_t NUMBER_CONSUMERS = 4;
     
     addElementsToBuffer(BUFFER_SIZE);
     ProducerConsumerManager manager(buffer_);

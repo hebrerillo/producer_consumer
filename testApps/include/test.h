@@ -52,7 +52,7 @@ protected:
 
     /**
      * The method checks the index value of the shared buffer of 'manager' every delay/2 milliseconds, with a
-     * maximum number of tries of delay*2.
+     * maximum number of tries of buffer_ * delay * 2.
      *
      * @return true if the current index value of the shared buffer reaches 'indexValue', false otherwise.
      */
