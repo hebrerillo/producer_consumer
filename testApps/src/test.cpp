@@ -56,13 +56,11 @@ TEST_F(ProducerConsumerTest, AfterInsertingALotOfConsumersAndProducersWithLongDe
     const uint64_t DELAY = 500;
     const size_t BIG_BUFFER_SIZE = 2000;
     uint64_t MAX_ELAPSED_TIME = 40; //The maximum elapsed time before and after stopping the manager, in milliseconds.
-#ifdef LINUX
+
     if (RUNNING_ON_VALGRIND)
     {
         MAX_ELAPSED_TIME = 1500;
     }
-#endif
-
 
     addElementsToBuffer(BIG_BUFFER_SIZE);
     ProducerConsumerManager manager(buffer_);
@@ -83,7 +81,7 @@ TEST_F(ProducerConsumerTest, WhenAddingOnlyOneProducer_ThenAfterWaitingTheShared
 {
     const size_t BUFFER_SIZE = 100;
     const uint64_t DELAY = 5;
-    uint64_t EXTRA_DELAY = 3;
+    uint64_t EXTRA_DELAY = 15;
 
     addElementsToBuffer(BUFFER_SIZE);
     ProducerConsumerManager manager(buffer_);
@@ -104,12 +102,10 @@ TEST_F(ProducerConsumerTest, WhenAddingOnlyOneConsumerInAFullSharedBuffer_ThenAf
     const uint64_t DELAY = 5;
     uint64_t EXTRA_DELAY = 3;
 
-#ifdef LINUX
     if (RUNNING_ON_VALGRIND)
     {
         EXTRA_DELAY = 14;
     }
-#endif
 
     addElementsToBuffer(BUFFER_SIZE, BUFFER_SIZE);
     ProducerConsumerManager manager(buffer_);
