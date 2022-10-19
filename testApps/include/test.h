@@ -1,3 +1,5 @@
+#ifndef PC_TEST_H
+#define PC_TEST_H
 #include <gtest/gtest.h>
 #include "IPC.h"
 
@@ -61,3 +63,5 @@ protected:
     unsigned long finalLeaked, finalDubious, finalReachable, finalSuppressed;
     ValgrindCheck valgrindCheck_;
 };
+
+#endif
