@@ -1,0 +1,13 @@
+{
+   Gtest_leak
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:allocate_stack
+   fun:pthread_create@@GLIBC_2.2.5
+   fun:_ZNSt6thread15_M_start_threadESt10unique_ptrINS_6_StateESt14default_deleteIS1_EEPFvvE
+   fun:_ZNSt6threadC1IM12IBufferActorFvRKNSt6chrono8durationIlSt5ratioILl1ELl1000EEEEEJPS1_S8_EvEEOT_DpOT0_
+   ...
+}
