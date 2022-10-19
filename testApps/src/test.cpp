@@ -74,7 +74,7 @@ TEST_F(ProducerConsumerTest, AfterInsertingALotOfConsumersAndProducersWithLongDe
 
     if (RUNNING_ON_VALGRIND)
     {
-        MAX_ELAPSED_TIME = 1500;
+        MAX_ELAPSED_TIME = 17000;
     }
 
     addElementsToBuffer(BIG_BUFFER_SIZE);
