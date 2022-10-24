@@ -23,7 +23,7 @@ To build the project and the executable shells, go to folder 'build' and type:
 
 ### Bin folder
 
-If the build is successful, a 'build/bin/' folder is created with all the executable targets.
+If the build is successful, all the executable targets will be generated in the 'build/bin' subdirectory.
 
 ### Main shell
 
