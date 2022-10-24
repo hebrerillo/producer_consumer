@@ -5,7 +5,6 @@
 #include <condition_variable>
 #include <vector>
 #include <list>
-#include <atomic>
 #include <chrono>
 #include "IPC.h"
 #include "IBufferItem.h"
@@ -76,7 +75,7 @@ private:
     IPC::ItemsBuffer buffer_;
     mutable std::mutex mutex_; //To synchornize accesses to 'currentIndex_' and 'buffer_'.
     std::condition_variable quitCV_;
-    std::atomic<bool> quitSignal_;
+    bool quitSignal_;
 };
 
 #endif
