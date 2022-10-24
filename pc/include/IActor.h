@@ -2,7 +2,6 @@
 #define PC_I_ACTOR_H
 
 #include <thread>
-#include <atomic>
 #include <mutex>
 #include <condition_variable>
 
@@ -68,7 +67,7 @@ private:
     virtual void run(const std::chrono::milliseconds& delay) = 0;
 
     std::thread thread_;
-    std::atomic<bool> quitSignal_;
+    bool quitSignal_;
     std::mutex mutex_;
     std::condition_variable stopCV_;
 };

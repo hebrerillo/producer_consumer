@@ -29,7 +29,7 @@ void SharedBuffer::produce(const Producer* producer)
     {
         std::cout << "Buffer full. Waiting for someone to consume." << std::endl;
         quitCV_.wait(lock, [this, producer](){
-            return currentIndex_ < buffer_.size() || quitSignal_.load() || !producer->isRunning();
+            return currentIndex_ < buffer_.size() || quitSignal_ || !producer->isRunning();
         });
     }
 }
@@ -47,7 +47,7 @@ void SharedBuffer::consume(const Consumer* consumer)
     {
         std::cout << "Buffer empty. Waiting for someone to push." << std::endl;
         quitCV_.wait(lock, [this, consumer](){
-            return (currentIndex_ > 0) || quitSignal_.load() || !consumer->isRunning();
+            return (currentIndex_ > 0) || quitSignal_ || !consumer->isRunning();
         });
     }
 }
@@ -55,7 +55,7 @@ void SharedBuffer::consume(const Consumer* consumer)
 void SharedBuffer::stop()
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    quitSignal_.exchange(true);
+    quitSignal_ = true;
     quitCV_.notify_all(); //If the signaling is performed without locking, Helgrind complains that the lock associated with 'quitSignal' is not held by any thread.
 }
 
@@ -67,7 +67,8 @@ void SharedBuffer::notify()
 
 bool SharedBuffer::isRunning() const
 {
-    return !quitSignal_.load();
+    std::unique_lock<std::mutex> lock(mutex_);
+    return !quitSignal_;
 }
 
 size_t SharedBuffer::getCurrentIndex() const

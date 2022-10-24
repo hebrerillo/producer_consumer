@@ -13,13 +13,13 @@ void IBufferActor::start(const std::chrono::milliseconds& delay)
 
 bool IBufferActor::isRunning() const
 {
-    return !quitSignal_.load();
+    return !quitSignal_;
 }
 
 void IBufferActor::stop()
 {
     mutex_.lock();
-    quitSignal_.exchange(true);
+    quitSignal_ = true;
     sharedBuffer_->notify();
     stopCV_.notify_all();
     mutex_.unlock();
@@ -32,7 +32,7 @@ bool IBufferActor::rest(const std::chrono::milliseconds& delay)
     std::unique_lock<std::mutex> lock(mutex_);
     auto quitPredicate = [this]()
     {
-        return quitSignal_.load();
+        return quitSignal_;
     };
 
     return !stopCV_.wait_for(lock, delay, quitPredicate);
