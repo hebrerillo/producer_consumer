@@ -14,7 +14,7 @@ void ProducerConsumerManager::start(const IPC::ItemsBuffer& buffer)
 
 void ProducerConsumerManager::addProducer(const std::chrono::milliseconds& delay)
 {
-    std::unique_lock<std::mutex> lock(mutexProducers_);
+    std::scoped_lock lock(mutexProducers_);
     if (!sharedBuffer_->isRunning())
     {
         return;
@@ -27,7 +27,7 @@ void ProducerConsumerManager::addProducer(const std::chrono::milliseconds& delay
 
 void ProducerConsumerManager::addConsumer(const std::chrono::milliseconds& delay)
 {
-    std::unique_lock<std::mutex> lock(mutexConsumers_);
+    std::scoped_lock lock(mutexConsumers_);
     if (!sharedBuffer_->isRunning())
     {
         return;
@@ -39,7 +39,7 @@ void ProducerConsumerManager::addConsumer(const std::chrono::milliseconds& delay
 
 void ProducerConsumerManager::removeConsumer()
 {
-    std::unique_lock<std::mutex> lock(mutexConsumers_);
+    std::scoped_lock lock(mutexConsumers_);
     ConsumerIterator consumerIterator = consumers_.begin();
     if (consumerIterator == consumers_.end())
     {
@@ -64,7 +64,7 @@ void ProducerConsumerManager::removeConsumer(const ConsumerIterator& consumerIte
 
 void ProducerConsumerManager::removeProducer()
 {
-    std::unique_lock<std::mutex> lock(mutexProducers_);
+    std::scoped_lock lock(mutexProducers_);
     ProducerIterator producerIterator = producers_.begin();
     if (producerIterator == producers_.end())
     {
@@ -89,7 +89,7 @@ void ProducerConsumerManager::removeProducer(const ProducerIterator& producerIte
 
 void ProducerConsumerManager::removeConsumers()
 {
-    std::unique_lock<std::mutex> lock(mutexConsumers_);
+    std::scoped_lock lock(mutexConsumers_);
     while(!consumers_.empty())
     {
         removeConsumer(consumers_.begin());
@@ -98,7 +98,7 @@ void ProducerConsumerManager::removeConsumers()
 
 void ProducerConsumerManager::removeProducers()
 {
-    std::unique_lock<std::mutex> lock(mutexProducers_);
+    std::scoped_lock lock(mutexProducers_);
     while(!producers_.empty())
     {
         removeProducer(producers_.begin());

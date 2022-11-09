@@ -54,25 +54,25 @@ void SharedBuffer::consume(const Consumer* consumer)
 
 void SharedBuffer::stop()
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::scoped_lock lock(mutex_);
     quitSignal_ = true;
     quitCV_.notify_all(); //If the signaling is performed without locking, Helgrind complains that the lock associated with 'quitSignal' is not held by any thread.
 }
 
 void SharedBuffer::notify()
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::scoped_lock lock(mutex_);
     quitCV_.notify_all();
 }
 
 bool SharedBuffer::isRunning() const
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::scoped_lock lock(mutex_);
     return !quitSignal_;
 }
 
 size_t SharedBuffer::getCurrentIndex() const
 {
-    std::unique_lock<std::mutex> lock(mutex_);
+    std::scoped_lock lock(mutex_);
     return currentIndex_;
 }
